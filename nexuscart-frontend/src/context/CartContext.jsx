@@ -47,7 +47,7 @@ function reducer(state, action) {
       return { ...state, items: [] }
     case "ADD_TO_CART":
       const existingItemIndex = state.items.findIndex(item => 
-        item.product?._id === action.payload.productId && item.size === action.payload.size
+        item.product?._id === action.payload._id && item.size === action.payload.size
       );
       
       if (existingItemIndex > -1) {
@@ -55,20 +55,33 @@ function reducer(state, action) {
           ...state,
           items: state.items.map((item, index) =>
             index === existingItemIndex
-              ? { ...item, quantity: item.quantity + action.payload.quantity }
+              ? { 
+                  ...item, 
+                  quantity: item.quantity + (action.payload.quantity || 1) 
+                }
               : item
           )
         };
       } else {
+        const newItem = {
+          _id: Date.now().toString(),
+          product: {
+            _id: action.payload._id,
+            name: action.payload.name,
+            price: action.payload.price,
+            image: action.payload.image,
+            category: action.payload.category
+          },
+          quantity: action.payload.quantity || 1,
+          size: action.payload.size || '',
+          price: action.payload.price,
+          name: action.payload.name,
+          image: action.payload.image
+        };
+        
         return { 
           ...state, 
-          items: [...state.items, {
-            _id: Date.now().toString(),
-            product: action.payload,
-            quantity: action.payload.quantity,
-            size: action.payload.size,
-            price: action.payload.price
-          }] 
+          items: [...state.items, newItem] 
         };
       }
     default:
@@ -101,8 +114,14 @@ export function CartProvider({ children }) {
       if (!token) return;
       
       const cartData = await api.getCart();
+      console.log('Cart sync response:', cartData); // Debug log
+      
       if (cartData && cartData.data) {
         dispatch({ type: 'HYDRATE', payload: { items: cartData.data.items } });
+      } else if (cartData && cartData.items) {
+        dispatch({ type: 'HYDRATE', payload: { items: cartData.items } });
+      } else if (cartData && Array.isArray(cartData)) {
+        dispatch({ type: 'HYDRATE', payload: { items: cartData } });
       }
     } catch (error) {
       console.error('Failed to sync cart with backend:', error);
@@ -124,36 +143,50 @@ export function CartProvider({ children }) {
         size: size || ''
       };
       
+      console.log('Adding to cart:', { product, size, quantity, token: !!token }); // Debug log
+      
       if (token) {
+        // User is logged in - sync with backend
         const result = await api.addToCart(itemData);
+        console.log('Backend cart response:', result); // Debug log
+        
         if (result && result.data) {
           dispatch({ type: 'HYDRATE', payload: { items: result.data.items } });
+        } else if (result && result.items) {
+          dispatch({ type: 'HYDRATE', payload: { items: result.items } });
+        } else {
+          // If backend response doesn't have expected structure, fallback to local
+          dispatch({ 
+            type: 'ADD_TO_CART', 
+            payload: {
+              ...product,
+              quantity,
+              size: size || ''
+            }
+          });
         }
       } else {
-        // Guest user - add to local state
+        // Guest user - add to local state only
         dispatch({ 
           type: 'ADD_TO_CART', 
           payload: {
             ...product,
-            productId: product._id || product.id,
             quantity,
-            size: size || '',
-            price: product.price
+            size: size || ''
           }
         });
       }
     } catch (error) {
       console.error('Failed to add item to cart:', error);
       dispatch({ type: 'SET_ERROR', payload: error.message });
-      // Fallback to local state
+      
+      // Always fallback to local state on error
       dispatch({ 
         type: 'ADD_TO_CART', 
         payload: {
           ...product,
-          productId: product._id || product.id,
           quantity,
-          size: size || '',
-          price: product.price
+          size: size || ''
         }
       });
     }
@@ -203,6 +236,11 @@ export function CartProvider({ children }) {
     }
   }
 
+  // Function to manually sync cart (useful after login)
+  const manualSyncCart = async () => {
+    await syncCartWithBackend();
+  };
+
   const value = useMemo(
     () => ({
       ...state,
@@ -213,7 +251,7 @@ export function CartProvider({ children }) {
       updateQuantity,
       removeFromCart,
       clearCart,
-      syncCartWithBackend,
+      syncCartWithBackend: manualSyncCart,
     }),
     [state, totalItems, totalPrice]
   )

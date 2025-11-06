@@ -27,6 +27,24 @@ export default function ProductDetailsPage() {
   const productImgRef = useRef(null);
   const imageContainerRef = useRef(null);
 
+  // Function to handle image paths
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) {
+      return 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop';
+    }
+    
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // Use actual images from public folder
+    if (imagePath.startsWith('/images/')) {
+      return imagePath;
+    }
+    
+    return 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop';
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -36,14 +54,39 @@ export default function ProductDetailsPage() {
           api.getProducts({ limit: 8 })
         ]);
         
-        setProduct(productResponse.data);
+        // FIX: Handle different response structures
+        let productData = productResponse;
+        console.log('Product response:', productResponse);
         
-        if (productsResponse.data.products) {
-          setRelatedProducts(productsResponse.data.products.filter(p => p._id !== id).slice(0, 4));
+        if (productResponse && productResponse.data) {
+          productData = productResponse.data;
+        } else if (productResponse && productResponse.product) {
+          productData = productResponse.product;
+        } else if (productResponse && productResponse.success && productResponse.data) {
+          productData = productResponse.data;
         }
+        
+        setProduct(productData);
 
-        if (productResponse.data?.sizes?.length > 0) {
-          setSelectedSize(productResponse.data.sizes[0]);
+        // Fetch related products
+        const productsResponseData = await api.getProducts({ limit: 8 });
+        console.log('Related products response:', productsResponseData);
+        
+        let productsData = [];
+        if (productsResponseData && productsResponseData.products) {
+          productsData = productsResponseData.products;
+        } else if (Array.isArray(productsResponseData)) {
+          productsData = productsResponseData;
+        } else if (productsResponseData && productsResponseData.data && productsResponseData.data.products) {
+          productsData = productsResponseData.data.products;
+        } else if (productsResponseData && productsResponseData.success && productsResponseData.data) {
+          productsData = productsResponseData.data.products || productsResponseData.data;
+        }
+        
+        setRelatedProducts(productsData.filter(p => p._id !== id).slice(0, 4));
+
+        if (productData?.sizes?.length > 0) {
+          setSelectedSize(productData.sizes[0]);
         }
       } catch (err) {
         console.error("Failed to fetch data:", err);
@@ -95,7 +138,7 @@ export default function ProductDetailsPage() {
   };
 
   const handleAddToCart = () => {
-    if (!productImgRef.current) return;
+    if (!product) return;
 
     const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : 
                  product.category?.toLowerCase() === "shoes" ? ["6","7","8","9","10","11","12"] :
@@ -110,40 +153,42 @@ export default function ProductDetailsPage() {
     const finalSize = selectedSize || sizes[0];
 
     // Enhanced flying animation
-    const imgClone = productImgRef.current.cloneNode(true);
-    const rect = productImgRef.current.getBoundingClientRect();
-    imgClone.style.position = "fixed";
-    imgClone.style.top = rect.top + "px";
-    imgClone.style.left = rect.left + "px";
-    imgClone.style.width = rect.width + "px";
-    imgClone.style.height = rect.height + "px";
-    imgClone.style.zIndex = 9999;
-    imgClone.style.borderRadius = "0.5rem";
-    imgClone.style.boxShadow = "0 20px 40px rgba(0,0,0,0.3)";
-    document.body.appendChild(imgClone);
+    if (productImgRef.current) {
+      const imgClone = productImgRef.current.cloneNode(true);
+      const rect = productImgRef.current.getBoundingClientRect();
+      imgClone.style.position = "fixed";
+      imgClone.style.top = rect.top + "px";
+      imgClone.style.left = rect.left + "px";
+      imgClone.style.width = rect.width + "px";
+      imgClone.style.height = rect.height + "px";
+      imgClone.style.zIndex = 9999;
+      imgClone.style.borderRadius = "0.5rem";
+      imgClone.style.boxShadow = "0 20px 40px rgba(0,0,0,0.3)";
+      document.body.appendChild(imgClone);
 
-    const cartIcon = document.querySelector("#navbar-cart-icon");
-    if (!cartIcon) return;
-    const cartRect = cartIcon.getBoundingClientRect();
-
-    imgClone.animate(
-      [
-        { 
-          transform: "translate(0,0) scale(1) rotate(0deg)", 
-          opacity: 1,
-          borderRadius: "0.5rem"
-        },
-        {
-          transform: `translate(${cartRect.left - rect.left}px, ${cartRect.top - rect.top}px) scale(0.1) rotate(180deg)`,
-          opacity: 0.5,
-          borderRadius: "50%"
-        },
-      ],
-      { 
-        duration: 800, 
-        easing: "cubic-bezier(0.175, 0.885, 0.32, 1.275)" 
+      const cartIcon = document.querySelector("#navbar-cart-icon");
+      if (cartIcon) {
+        const cartRect = cartIcon.getBoundingClientRect();
+        imgClone.animate(
+          [
+            { 
+              transform: "translate(0,0) scale(1) rotate(0deg)", 
+              opacity: 1,
+              borderRadius: "0.5rem"
+            },
+            {
+              transform: `translate(${cartRect.left - rect.left}px, ${cartRect.top - rect.top}px) scale(0.1) rotate(180deg)`,
+              opacity: 0.5,
+              borderRadius: "50%"
+            },
+          ],
+          { 
+            duration: 800, 
+            easing: "cubic-bezier(0.175, 0.885, 0.32, 1.275)" 
+          }
+        ).onfinish = () => imgClone.remove();
       }
-    ).onfinish = () => imgClone.remove();
+    }
 
     addToCart(product, finalSize, quantity);
     
@@ -244,7 +289,7 @@ export default function ProductDetailsPage() {
           >
             <motion.img
               ref={productImgRef}
-              src={imageError ? 'https://via.placeholder.com/600x600?text=Image+Not+Found' : product.image}
+              src={imageError ? 'https://via.placeholder.com/600x600?text=Image+Not+Found' : getImageUrl(product.image)}
               alt={product.name}
               className="w-full h-full object-cover"
               whileHover={{ scale: isZoomed ? 1.1 : 1.05 }}

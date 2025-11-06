@@ -25,20 +25,26 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
       return imagePath;
     }
     
-    // Map backend image paths to high-quality placeholder images
+    // If it's a relative path starting with /images/, serve from public folder
+    // Vercel will automatically serve these from the public/images folder
+    if (imagePath.startsWith('/images/')) {
+      return imagePath;
+    }
+    
+    // Map backend image paths to your actual images
     const imageMap = {
-      '/images/shirt.jpeg': 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&h=400&fit=crop',
-      '/images/whitetee.jpeg': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
-      '/images/runningshoes.jpeg': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
-      '/images/hoodie.jpg': 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=400&fit=crop',
-      '/images/casualpants.jpg': 'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400&h=400&fit=crop',
-      '/images/leatherjacket.jpeg': 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop',
-      '/images/watch.jpg': 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=400&h=400&fit=crop',
-      '/images/backpack.jpeg': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop',
-      '/images/sunglasses.jpg': 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&h=400&fit=crop',
-      '/images/denimjeans.jpg': 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=400&fit=crop',
-      '/images/beanie.jpg': 'https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?w=400&h=400&fit=crop',
-      '/images/phonecase.jpeg': 'https://images.unsplash.com/photo-1601593346740-925612772716?w=400&h=400&fit=crop'
+      '/images/shirt.jpeg': '/images/shirt.jpeg',
+      '/images/whitetee.jpeg': '/images/whitetee.jpeg',
+      '/images/runningshoes.jpeg': '/images/runningshoes.jpeg',
+      '/images/hoodie.jpg': '/images/hoodie.jpg',
+      '/images/casualpants.jpg': '/images/casualpants.jpg',
+      '/images/leatherjacket.jpeg': '/images/leatherjacket.jpeg',
+      '/images/watch.jpg': '/images/watch.jpg',
+      '/images/backpack.jpeg': '/images/backpack.jpeg',
+      '/images/sunglasses.jpg': '/images/sunglasses.jpg',
+      '/images/denimjeans.jpg': '/images/denimjeans.jpg',
+      '/images/beanie.jpg': '/images/beanie.jpg',
+      '/images/phonecase.jpeg': '/images/phonecase.jpeg'
     };
     
     return imageMap[imagePath] || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop';
@@ -71,7 +77,6 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
       setSizePopup(false);
     } catch (error) {
       console.error('Failed to add to cart:', error);
-      // Handle error (show toast notification)
     } finally {
       setAdding(false);
     }
