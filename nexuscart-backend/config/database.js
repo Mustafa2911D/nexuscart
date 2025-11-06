@@ -8,15 +8,26 @@ const connectDB = async () => {
       throw new Error('MONGODB_URI environment variable is not defined');
     }
     
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    console.log('Connection string:', process.env.MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'));
     
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    // Remove deprecated options for newer MongoDB driver
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`📁 Database: ${conn.connection.name}`);
   } catch (error) {
-    console.error('MongoDB Connection Failed:', error.message);
-    console.error('Please check your MONGODB_URI in .env file');
+    console.error('❌ MongoDB Connection Failed:', error.message);
+    
+    // More detailed error information
+    if (error.message.includes('bad auth') || error.message.includes('Authentication failed')) {
+      console.error('🔐 Authentication failed - check username and password in MONGODB_URI');
+    } else if (error.message.includes('getaddrinfo')) {
+      console.error('🌐 Network error - check cluster URL in MONGODB_URI');
+    } else if (error.message.includes('querySrv')) {
+      console.error('🔗 DNS error - check MongoDB connection string format');
+    }
+    
+    console.error('Please check your MONGODB_URI in environment variables');
     process.exit(1);
   }
 };

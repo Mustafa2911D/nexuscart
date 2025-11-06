@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/database');
-const path = require('path');
 
 dotenv.config();
 
@@ -10,7 +9,7 @@ connectDB();
 
 const app = express();
 
-// Enhanced CORS configuration for production
+// Enhanced CORS configuration
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL || 'https://nexuscart.vercel.app',
@@ -24,19 +23,6 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Security middleware
-app.use(require('helmet')());
-app.use(require('xss-clean')());
-app.use(require('hpp')());
-
-// Rate limiting
-const rateLimit = require('express-rate-limit');
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use('/api/', limiter);
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -55,21 +41,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../nexuscart-frontend/dist')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../nexuscart-frontend/dist/index.html'));
-  });
-}
-
-// Enhanced error handling middleware
-app.use((error, req, res, next) => {
-  console.error('Server error:', error);
-  res.status(500).json({ 
-    message: error.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'NexusCart Backend API',
+    version: '1.0.0',
+    documentation: '/api/health',
+    endpoints: {
+      auth: '/api/auth',
+      products: '/api/products',
+      cart: '/api/cart',
+      orders: '/api/orders'
+    }
   });
 });
 
@@ -83,5 +66,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
   console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-  console.log(`📊 MongoDB: ${process.env.MONGODB_URI ? 'Connected' : 'Not configured'}`);
+  console.log(`📊 MongoDB: ${process.env.MONGODB_URI ? 'Configured' : 'Not configured'}`);
 });
