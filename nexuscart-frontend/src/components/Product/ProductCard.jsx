@@ -14,6 +14,36 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
 
   const isWishlisted = isInWishlist(product._id || product.id)
 
+  // Function to handle image paths from backend
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) {
+      return 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop';
+    }
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // Map backend image paths to high-quality placeholder images
+    const imageMap = {
+      '/images/shirt.jpeg': 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&h=400&fit=crop',
+      '/images/whitetee.jpeg': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
+      '/images/runningshoes.jpeg': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
+      '/images/hoodie.jpg': 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=400&fit=crop',
+      '/images/casualpants.jpg': 'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400&h=400&fit=crop',
+      '/images/leatherjacket.jpeg': 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop',
+      '/images/watch.jpg': 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=400&h=400&fit=crop',
+      '/images/backpack.jpeg': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop',
+      '/images/sunglasses.jpg': 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&h=400&fit=crop',
+      '/images/denimjeans.jpg': 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=400&fit=crop',
+      '/images/beanie.jpg': 'https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?w=400&h=400&fit=crop',
+      '/images/phonecase.jpeg': 'https://images.unsplash.com/photo-1601593346740-925612772716?w=400&h=400&fit=crop'
+    };
+    
+    return imageMap[imagePath] || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop';
+  };
+
   const getDefaultSizes = () => {
     if (product.sizes && product.sizes.length > 0) return product.sizes
     const cat = product.category?.toLowerCase()
@@ -23,29 +53,29 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
   }
 
   const handleAdd = async (size = null) => {
-  if (adding) return;
-  
-  const sizes = getDefaultSizes();
-  const chosenSize = size || (sizes.length === 1 ? sizes[0] : null);
+    if (adding) return;
+    
+    const sizes = getDefaultSizes();
+    const chosenSize = size || (sizes.length === 1 ? sizes[0] : null);
 
-  if (sizes.length > 1 && !chosenSize) {
-    setSizePopup(true);
-    return;
-  }
+    if (sizes.length > 1 && !chosenSize) {
+      setSizePopup(true);
+      return;
+    }
 
-  setAdding(true);
-  try {
-    await onAddToCart(product, chosenSize, 1);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
-    setSizePopup(false);
-  } catch (error) {
-    console.error('Failed to add to cart:', error);
-    // Handle error (show toast notification)
-  } finally {
-    setAdding(false);
-  }
-};
+    setAdding(true);
+    try {
+      await onAddToCart(product, chosenSize, 1);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1200);
+      setSizePopup(false);
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+      // Handle error (show toast notification)
+    } finally {
+      setAdding(false);
+    }
+  };
 
   const handleWishlistToggle = (e) => {
     e.preventDefault()
@@ -72,7 +102,7 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
         <Link to={`/products/${product._id || product.id}`} className="flex-shrink-0">
           <div className="relative w-24 h-24 overflow-hidden rounded-xl">
             <img
-              src={imageError ? 'https://via.placeholder.com/300x300?text=Image+Not+Found' : product.image}
+              src={getImageUrl(product.image)}
               alt={product.name}
               className="w-full h-full object-cover"
               onError={handleImageError}
@@ -133,7 +163,7 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
           <div className="relative h-44 w-full overflow-hidden">
             <img
               ref={ref}
-              src={imageError ? 'https://via.placeholder.com/300x300?text=Image+Not+Found' : product.image}
+              src={getImageUrl(product.image)}
               alt={product.name}
               className="w-full h-full object-cover transition group-hover:scale-[1.03]"
               onError={handleImageError}
