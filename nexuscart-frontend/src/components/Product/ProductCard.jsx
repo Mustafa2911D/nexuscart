@@ -103,9 +103,10 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
 
   if (viewMode === 'list') {
     return (
-      <div className="flex gap-4 rounded-2xl border bg-white p-4 hover:shadow-md transition">
+      <div className="flex gap-4 rounded-2xl border border-gray-200 bg-white p-4 hover:shadow-md transition-all duration-300">
+        {/* Product Image */}
         <Link to={`/products/${product._id || product.id}`} className="flex-shrink-0">
-          <div className="relative w-24 h-24 overflow-hidden rounded-xl">
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24 overflow-hidden rounded-xl">
             <img
               src={getImageUrl(product.image)}
               alt={product.name}
@@ -120,40 +121,64 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
           </div>
         </Link>
 
-        <div className="flex-1">
-          <div className="flex justify-between items-start mb-2">
-            <Link to={`/products/${product._id || product.id}`}>
-              <h3 className="font-semibold hover:text-primary">{product.name}</h3>
+        {/* Product Details */}
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start mb-2 gap-2">
+            <Link to={`/products/${product._id || product.id}`} className="min-w-0 flex-1">
+              <h3 className="font-semibold text-gray-900 hover:text-primary truncate text-sm sm:text-base">
+                {product.name}
+              </h3>
             </Link>
             <button
               onClick={handleWishlistToggle}
-              className={`p-2 rounded-full hover:bg-gray-100 ${
+              className={`p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0 ${
                 isWishlisted ? 'text-red-500' : 'text-gray-400'
               }`}
             >
-              <FiHeart className={isWishlisted ? 'fill-current' : ''} />
+              <FiHeart className={isWishlisted ? 'fill-current' : ''} size={18} />
             </button>
           </div>
           
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+          <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">
+            {product.description}
+          </p>
           
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">{product.category}</span>
-            <p className="font-semibold">R {product.price?.toFixed?.(2) ?? product.price}</p>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              {product.category}
+            </span>
+            <p className="font-semibold text-gray-900 text-sm sm:text-base">
+              R {product.price?.toFixed?.(2) ?? product.price}
+            </p>
           </div>
 
-          <div className="mt-3">
+          {/* Add to Cart Button */}
+          <div className="flex justify-end">
             <motion.button
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.95 }}
               onClick={(e) => {
                 e.preventDefault()
                 handleAdd()
               }}
-              className={`rounded-xl px-4 py-2 text-sm font-medium text-white ${
-                added ? 'bg-secondary' : 'bg-primary'
+              disabled={adding || added}
+              className={`rounded-xl px-4 py-2 text-xs sm:text-sm font-medium text-white transition-all min-w-[100px] ${
+                added 
+                  ? 'bg-green-600' 
+                  : adding 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-primary hover:bg-indigo-600'
               }`}
             >
-              {added ? 'Added' : (adding ? 'Adding...' : 'Add to cart')}
+              {added ? (
+                <span className="flex items-center gap-1">
+                  <FiCheck size={14} />
+                  Added
+                </span>
+              ) : adding ? (
+                'Adding...'
+              ) : (
+                'Add to Cart'
+              )}
             </motion.button>
           </div>
         </div>
@@ -161,16 +186,18 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
     )
   }
 
+  // Grid View
   return (
-    <div className="group rounded-2xl border bg-white p-3 shadow-sm transition hover:shadow-elevated relative">
-      <div className="relative">
+    <div className="group rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 relative">
+      {/* Product Image */}
+      <div className="relative mb-3">
         <Link to={`/products/${product._id || product.id}`} className="block overflow-hidden rounded-xl">
-          <div className="relative h-44 w-full overflow-hidden">
+          <div className="relative h-40 sm:h-48 w-full overflow-hidden bg-gray-100 rounded-xl">
             <img
               ref={ref}
               src={getImageUrl(product.image)}
               alt={product.name}
-              className="w-full h-full object-cover transition group-hover:scale-[1.03]"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               onError={handleImageError}
               onLoad={handleImageLoad}
               loading="lazy"
@@ -181,67 +208,92 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
           </div>
         </Link>
 
+        {/* Wishlist Button */}
         <button
           onClick={handleWishlistToggle}
-          className={`absolute top-3 right-3 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition ${
-            isWishlisted ? 'text-red-500' : 'text-gray-600'
+          className={`absolute top-2 right-2 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:shadow-lg transition-all ${
+            isWishlisted ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
           }`}
         >
-          <FiHeart className={isWishlisted ? 'fill-current' : ''} />
+          <FiHeart 
+            className={isWishlisted ? 'fill-current' : ''} 
+            size={18} 
+          />
         </button>
       </div>
 
-      <div className="mt-3 flex items-start justify-between gap-2">
-        <div>
-          <Link to={`/products/${product._id || product.id}`}>
-            <h3 className="font-semibold line-clamp-1 hover:text-primary">{product.name}</h3>
+      {/* Product Info */}
+      <div className="space-y-2">
+        {/* Name and Price - Fixed overlapping issue */}
+        <div className="flex items-start justify-between gap-2 min-h-[3rem]">
+          <Link to={`/products/${product._id || product.id}`} className="min-w-0 flex-1">
+            <h3 className="font-semibold text-gray-900 hover:text-primary line-clamp-2 text-sm sm:text-base leading-tight">
+              {product.name}
+            </h3>
           </Link>
-          <p className="mt-1 text-sm text-gray-500 line-clamp-2">{product.description}</p>
+          <p className="shrink-0 font-bold text-primary text-sm sm:text-base ml-2">
+            R {product.price?.toFixed?.(2) ?? product.price}
+          </p>
         </div>
-        <p className="shrink-0 rounded-lg bg-gray-50 px-2 py-1 font-semibold">
-          R {product.price?.toFixed?.(2) ?? product.price}
-        </p>
-      </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-gray-500">{product.category}</span>
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => handleAdd()}
-          className={`relative rounded-xl px-3 py-2 text-sm font-medium text-white ${
-            added ? 'bg-secondary' : 'bg-primary'
-          } focus-visible:ring-2`}
-          aria-live="polite"
-        >
-          <motion.span
-            initial={false}
-            animate={{ scale: added ? 1.05 : 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-            className="inline-flex items-center gap-2"
+        {/* Description */}
+        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">
+          {product.description}
+        </p>
+
+        {/* Category and Add to Cart */}
+        <div className="flex items-center justify-between pt-2">
+          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+            {product.category}
+          </span>
+          
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleAdd()}
+            disabled={adding || added}
+            className={`rounded-xl px-3 py-2 text-xs sm:text-sm font-medium text-white transition-all min-w-[100px] ${
+              added 
+                ? 'bg-green-600' 
+                : adding 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-primary hover:bg-indigo-600'
+            }`}
           >
-            {added ? <FiCheck /> : null}
-            {added ? 'Added' : (adding ? 'Adding...' : 'Add to cart')}
-          </motion.span>
-        </motion.button>
+            {added ? (
+              <span className="flex items-center gap-1 justify-center">
+                <FiCheck size={14} />
+                Added
+              </span>
+            ) : adding ? (
+              'Adding...'
+            ) : (
+              'Add to Cart'
+            )}
+          </motion.button>
+        </div>
       </div>
 
       {/* Size Popup */}
       {sizePopup && (
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-28 rounded-lg border bg-white p-2 shadow-lg z-50">
-          <p className="text-xs font-semibold mb-1">Select size</p>
-          {getDefaultSizes().map((s) => (
-            <button
-              key={s}
-              onClick={() => handleAdd(s)}
-              className="block w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100"
-            >
-              {s}
-            </button>
-          ))}
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 w-32 rounded-lg border border-gray-200 bg-white p-2 shadow-lg z-50">
+          <p className="text-xs font-semibold mb-2 text-gray-700 text-center">Select size</p>
+          <div className="space-y-1">
+            {getDefaultSizes().map((s) => (
+              <button
+                key={s}
+                onClick={() => handleAdd(s)}
+                className="block w-full text-center px-2 py-1.5 text-xs rounded-lg hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
   )
 })
+
+ProductCard.displayName = 'ProductCard'
 
 export default ProductCard
