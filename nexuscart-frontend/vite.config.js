@@ -22,5 +22,7 @@ export default defineConfig({
   preview: {
     port: 5173,
     host: true
-  }
+  },
+  // Add base URL for production
+  base: './'
 })

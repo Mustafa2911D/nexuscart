@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "nexuscart-frontend",
+  "name": "nexuscart",
   "builds": [
     {
       "src": "package.json",
@@ -16,7 +16,36 @@
       "dest": "/index.html"
     }
   ],
-  "env": {
-    "VITE_API_URL": "https://nexuscart-backend.onrender.com/api"
-  }
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    }
+  ]
 }
