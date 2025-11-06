@@ -11,23 +11,34 @@ const generateToken = (id) => {
   });
 };
 
-// POST /api/auth/register
+// POST /api/auth/register - FIXED
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    console.log('Registration attempt:', { name, email });
+
     if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Please fill in all fields' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Please fill in all fields' 
+      });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Password must be at least 6 characters' 
+      });
     }
 
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'User already exists' 
+      });
     }
 
     const user = await User.create({
@@ -37,72 +48,110 @@ router.post('/register', async (req, res) => {
     });
 
     if (user) {
+      const token = generateToken(user._id);
+      
       res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),
+        success: true,
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          token: token,
+        },
+        message: 'User registered successfully'
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400).json({ 
+        success: false,
+        message: 'Invalid user data' 
+      });
     }
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during registration' 
+    });
   }
 });
 
-// POST /api/auth/login
+// POST /api/auth/login - FIXED
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt:', { email });
+
     if (!email || !password) {
-      return res.status(400).json({ message: 'Please provide email and password' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Please provide email and password' 
+      });
     }
 
     const user = await User.findOne({ email });
 
-    if (user && (await user.correctPassword(password, user.password))) {
+    if (user && (await user.correctPassword(password))) {
+      const token = generateToken(user._id);
+      
       res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),
+        success: true,
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          token: token,
+        },
+        message: 'Login successful'
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ 
+        success: false,
+        message: 'Invalid email or password' 
+      });
     }
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during login' 
+    });
   }
 });
 
-// GET /api/auth/profile
+// GET /api/auth/profile - FIXED
 router.get('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     
     if (user) {
       res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        address: user.address,
-        avatar: user.avatar,
-        createdAt: user.createdAt
+        success: true,
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          address: user.address,
+          avatar: user.avatar,
+          createdAt: user.createdAt
+        }
       });
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while fetching profile' 
+    });
   }
 });
 
-// PUT /api/auth/profile
+// PUT /api/auth/profile - FIXED
 router.put('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -120,86 +169,29 @@ router.put('/profile', protect, async (req, res) => {
       const updatedUser = await user.save();
       
       res.json({
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        address: updatedUser.address,
-        avatar: updatedUser.avatar,
-        token: generateToken(updatedUser._id),
+        success: true,
+        data: {
+          _id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          address: updatedUser.address,
+          avatar: updatedUser.avatar,
+          token: generateToken(updatedUser._id),
+        },
+        message: 'Profile updated successfully'
       });
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// PUT /api/auth/password - Update password
-router.put('/password', protect, async (req, res) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: 'Current password and new password are required' });
-    }
-
-    const user = await User.findById(req.user._id);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Verify current password
-    const isCurrentPasswordValid = await user.correctPassword(currentPassword, user.password);
-    if (!isCurrentPasswordValid) {
-      return res.status(401).json({ message: 'Current password is incorrect' });
-    }
-
-    // Update password
-    user.password = newPassword;
-    await user.save();
-
-    res.json({ message: 'Password updated successfully' });
-  } catch (error) {
-    console.error('Update password error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// DELETE /api/auth/account 
-router.delete('/account', protect, async (req, res) => {
-  try {
-    const { password } = req.body;
-
-    if (!password) {
-      return res.status(400).json({ message: 'Password is required to confirm account deletion' });
-    }
-
-    const user = await User.findById(req.user._id);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Verify password
-    const isPasswordValid = await user.correctPassword(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Password is incorrect' });
-    }
-
-    // Delete user data
-    await Promise.all([
-      User.deleteOne({ _id: req.user._id }),
-      Cart.deleteOne({ user: req.user._id }),
-      Order.deleteMany({ user: req.user._id })
-    ]);
-
-    res.json({ message: 'Account deleted successfully' });
-  } catch (error) {
-    console.error('Delete account error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while updating profile' 
+    });
   }
 });
 
