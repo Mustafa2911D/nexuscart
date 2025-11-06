@@ -9,17 +9,33 @@ connectDB();
 
 const app = express();
 
-// Enhanced CORS configuration
+// Enhanced CORS configuration - FIXED
 app.use(cors({
   origin: [
-    process.env.FRONTEND_URL || 'https://nexuscart.vercel.app',
+    'https://nexuscart-peach.vercel.app',  // Your actual Vercel URL
+    'https://nexuscart.vercel.app',        // Your main domain
     'http://localhost:5173',
     'http://localhost:3000'
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers'
+  ],
+  exposedHeaders: [
+    'Access-Control-Allow-Origin',
+    'Access-Control-Allow-Credentials'
+  ]
 }));
+
+// Or use this SIMPLE CORS configuration that allows all origins (for development):
+// app.use(cors());
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -65,6 +81,9 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-  console.log(`📊 MongoDB: ${process.env.MONGODB_URI ? 'Configured' : 'Not configured'}`);
+  console.log(`🔗 Frontend URLs allowed: ${[
+    'https://nexuscart-peach.vercel.app',
+    'https://nexuscart.vercel.app',
+    'http://localhost:5173'
+  ].join(', ')}`);
 });
