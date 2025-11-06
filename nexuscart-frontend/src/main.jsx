@@ -19,4 +19,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       </UserProvider>
     </BrowserRouter>
   </React.StrictMode>,
-)
+)// SPA routing fix
