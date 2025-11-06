@@ -169,13 +169,6 @@ export default function LoginPage() {
             </p>
           </div>
         </form>
-
-        {/* Demo Credentials Hint */}
-        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-2xl text-center">
-          <p className="text-sm text-blue-700">
-            <strong>Demo:</strong> Try with test@example.com / password123
-          </p>
-        </div>
       </div>
 
       {/* Success Modal */}
