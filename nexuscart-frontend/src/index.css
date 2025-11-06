@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth scroll */
+html, body {
+  scroll-behavior: smooth;
+}
+
+/* Fancy focus ring */
+:focus-visible {
+  outline: 2px solid theme('colors.primary');
+  outline-offset: 2px;
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(0,0,0,0.08);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -150%;
+  height: 100%; width: 150%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  100% { transform: translateX(200%); }
+}
+
+/* Password toggle button */
+.password-toggle {
+  position: absolute;
+  right: 0.75rem; 
+  top: 50%; 
+  transform: translateY(-50%);
+  color: #6b7280; 
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.password-toggle:hover {
+  color: #374151; 
+}
+
+/* Image loading states */
+.image-loading {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e5e7eb;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.image-loaded {
+  opacity: 1; 
+  transition: opacity 0.3s;
+}
