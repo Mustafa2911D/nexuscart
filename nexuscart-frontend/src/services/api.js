@@ -25,14 +25,14 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Response interceptor - Handle different response structures
 apiClient.interceptors.response.use(
   (response) => {
-    // Handle successful responses
-    return response.data; // Return only the data part
+    // If response has data property, return it directly
+    // Otherwise return the entire response
+    return response.data !== undefined ? response.data : response;
   },
   (error) => {
-    // Handle errors
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('userData');
@@ -43,102 +43,96 @@ apiClient.interceptors.response.use(
                         error.message || 
                         'Network error occurred';
     
-    console.error('API Error:', {
-      message: errorMessage,
-      status: error.response?.status,
-      url: error.config?.url
-    });
-    
     return Promise.reject(new Error(errorMessage));
   }
 );
 
-// Enhanced API methods with better error handling
 export const api = {
   // Auth methods
   login: async (credentials) => {
-    return await apiClient.post('/auth/login', credentials);
+    const response = await apiClient.post('/auth/login', credentials);
+    return response;
   },
 
   register: async (userData) => {
-    return await apiClient.post('/auth/register', userData);
+    const response = await apiClient.post('/auth/register', userData);
+    return response;
   },
 
   getProfile: async () => {
-    return await apiClient.get('/auth/profile');
+    const response = await apiClient.get('/auth/profile');
+    return response;
   },
 
   updateProfile: async (userData) => {
-    return await apiClient.put('/auth/profile', userData);
+    const response = await apiClient.put('/auth/profile', userData);
+    return response;
   },
 
-  updatePassword: async (passwordData) => {
-    return await apiClient.put('/auth/password', passwordData);
-  },
-
-  deleteAccount: async (passwordData) => {
-    return await apiClient.delete('/auth/account', { data: passwordData });
-  },
-
-  // Product methods
+  // Product methods - Handle different response structures
   getProducts: async (params = {}) => {
-    return await apiClient.get('/products', { params });
+    const response = await apiClient.get('/products', { params });
+    // If response is already the products array, return it
+    // If it's an object with products property, return that
+    return Array.isArray(response) ? { products: response } : response;
   },
 
   getProduct: async (id) => {
-    return await apiClient.get(`/products/${id}`);
+    const response = await apiClient.get(`/products/${id}`);
+    return response;
   },
 
   getCategories: async () => {
-    return await apiClient.get('/products/categories');
+    const response = await apiClient.get('/products/categories');
+    return Array.isArray(response) ? response : (response.categories || response);
   },
 
   // Cart methods
   getCart: async () => {
-    return await apiClient.get('/cart');
+    const response = await apiClient.get('/cart');
+    return response.data || response;
   },
 
   addToCart: async (item) => {
-    return await apiClient.post('/cart/add', item);
+    const response = await apiClient.post('/cart/add', item);
+    return response.data || response;
   },
 
   updateCartItem: async (id, quantity) => {
-    return await apiClient.put(`/cart/${id}`, { quantity });
+    const response = await apiClient.put(`/cart/${id}`, { quantity });
+    return response.data || response;
   },
 
   removeFromCart: async (id) => {
-    return await apiClient.delete(`/cart/${id}`);
+    const response = await apiClient.delete(`/cart/${id}`);
+    return response.data || response;
   },
 
   clearCart: async () => {
-    return await apiClient.delete('/cart');
+    const response = await apiClient.delete('/cart');
+    return response.data || response;
   },
 
   checkout: async (orderData) => {
-    return await apiClient.post('/cart/checkout', orderData);
+    const response = await apiClient.post('/cart/checkout', orderData);
+    return response.data || response;
   },
 
   // Order methods
-  createOrder: async (orderData) => {
-    return await apiClient.post('/orders', orderData);
-  },
-
   getOrders: async () => {
-    return await apiClient.get('/orders');
+    const response = await apiClient.get('/orders');
+    return Array.isArray(response) ? response : (response.orders || response);
   },
 
   getOrder: async (id) => {
-    return await apiClient.get(`/orders/${id}`);
+    const response = await apiClient.get(`/orders/${id}`);
+    return response;
   },
 
   // Newsletter methods
   subscribeToNewsletter: async (email) => {
-    return await apiClient.post('/newsletter/subscribe', { email });
-  },
-
-  // Health check
-  healthCheck: async () => {
-    return await apiClient.get('/health');
+    const response = await apiClient.post('/newsletter/subscribe', { email });
+    return response;
   }
 };
 

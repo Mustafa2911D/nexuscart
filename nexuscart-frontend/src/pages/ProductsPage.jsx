@@ -45,13 +45,36 @@ export default function ProductsPage() {
           maxPrice: priceRange[1]
         }
         
-        const { data } = await api.getProducts(params)
+        const response = await api.getProducts(params)
+        
+        // Handle different response structures
+        let productsData = []
+        let totalCount = 0
+        let totalPages = 1
+        let currentPage = 1
+        
+        if (Array.isArray(response)) {
+          productsData = response
+          totalCount = response.length
+        } else if (response && response.products) {
+          productsData = response.products
+          totalCount = response.total || response.products.length
+          totalPages = response.totalPages || 1
+          currentPage = response.currentPage || 1
+        } else if (response && Array.isArray(response.data)) {
+          productsData = response.data
+          totalCount = response.total || response.data.length
+        } else if (Array.isArray(response)) {
+          productsData = response
+          totalCount = response.length
+        }
+        
         if (mounted) {
-          setProducts(data.products || [])
+          setProducts(productsData)
           setPagination({
-            currentPage: data.currentPage || 1,
-            totalPages: data.totalPages || 1,
-            total: data.total || 0
+            currentPage: currentPage,
+            totalPages: totalPages,
+            total: totalCount
           })
           setIsFiltered(!!search || category !== 'All' || priceRange[1] < 5000)
         }
@@ -65,8 +88,19 @@ export default function ProductsPage() {
 
     const fetchCategories = async () => {
       try {
-        const { data } = await api.getCategories()
-        if (mounted) setCategories(data || [])
+        const response = await api.getCategories()
+        
+        // Handle different response structures
+        let categoriesData = []
+        if (Array.isArray(response)) {
+          categoriesData = response
+        } else if (response && response.categories) {
+          categoriesData = response.categories
+        } else if (response && Array.isArray(response.data)) {
+          categoriesData = response.data
+        }
+        
+        if (mounted) setCategories(categoriesData)
       } catch (e) {
         console.error('Failed to fetch categories:', e)
       }
@@ -75,7 +109,7 @@ export default function ProductsPage() {
     fetchProducts()
     fetchCategories()
     
-    return () => mounted = false
+    return () => { mounted = false }
   }, [search, category, pagination.currentPage, viewMode, sortBy, priceRange])
 
   const handleAddToCart = (product) => {

@@ -13,27 +13,47 @@ export default function HomePage() {
   const [email, setEmail] = useState('')
   const [newsletterSuccess, setNewsletterSuccess] = useState(false)
   const [newsletterLoading, setNewsletterLoading] = useState(false)
-  const { dispatch } = useCart()
+  const { addToCart } = useCart()
   const productRefs = useRef({})
 
   useEffect(() => {
     let mounted = true
     setLoading(true)
     
-    api.getProducts()
-      .then(({ data }) => { 
-        if (mounted) {
-          const productsData = data.products || data || []
-          setProducts(Array.isArray(productsData) ? productsData : [])
+    const fetchProducts = async () => {
+      try {
+        const response = await api.getProducts()
+        
+        // Handle different response structures
+        let productsData = []
+        if (Array.isArray(response)) {
+          productsData = response
+        } else if (response && response.products) {
+          productsData = response.products
+        } else if (response && Array.isArray(response.data)) {
+          productsData = response.data
+        } else if (Array.isArray(response)) {
+          productsData = response
         }
-      })
-      .catch(e => {
+        
+        if (mounted) {
+          setProducts(productsData)
+        }
+      } catch (e) {
         console.error('Failed to fetch products:', e)
-        setError('Failed to load products. Please try again later.')
-      })
-      .finally(() => setLoading(false))
+        if (mounted) {
+          setError('Failed to load products. Please try again later.')
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchProducts()
       
-    return () => mounted = false
+    return () => { mounted = false }
   }, [])
 
   const handleNewsletterSubmit = async (e) => {
@@ -114,7 +134,7 @@ export default function HomePage() {
       }
     ).onfinish = () => clone.remove()
 
-    dispatch({ type: 'ADD_TO_CART', payload: { ...product, size: selectedSize, quantity: 1 } })
+    addToCart(product, selectedSize, 1)
   }
 
   return (
