@@ -22,7 +22,5 @@ export default defineConfig({
   preview: {
     port: 5173,
     host: true
-  },
-  // Add this for production builds
-  base: './'
+  }
 })
