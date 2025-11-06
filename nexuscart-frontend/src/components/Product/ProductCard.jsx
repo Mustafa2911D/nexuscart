@@ -186,11 +186,11 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
     )
   }
 
-  // Grid View
+  // Grid View - Fixed version
   return (
-    <div className="group rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 relative">
+    <div className="group rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 relative flex flex-col h-full">
       {/* Product Image */}
-      <div className="relative mb-3">
+      <div className="relative mb-3 flex-shrink-0">
         <Link to={`/products/${product._id || product.id}`} className="block overflow-hidden rounded-xl">
           <div className="relative h-40 sm:h-48 w-full overflow-hidden bg-gray-100 rounded-xl">
             <img
@@ -222,36 +222,37 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
         </button>
       </div>
 
-      {/* Product Info */}
-      <div className="space-y-2">
-        {/* Name and Price - Fixed overlapping issue */}
-        <div className="flex items-start justify-between gap-2 min-h-[3rem]">
+      {/* Product Info - Flex column to push button to bottom */}
+      <div className="flex flex-col flex-1 space-y-3">
+        {/* Name and Price - Fixed overlapping with proper spacing */}
+        <div className="flex flex-col gap-1 min-h-[3rem]">
           <Link to={`/products/${product._id || product.id}`} className="min-w-0 flex-1">
-            <h3 className="font-semibold text-gray-900 hover:text-primary line-clamp-2 text-sm sm:text-base leading-tight">
+            <h3 className="font-semibold text-gray-900 hover:text-primary line-clamp-2 text-sm sm:text-base leading-tight mb-1">
               {product.name}
             </h3>
           </Link>
-          <p className="shrink-0 font-bold text-primary text-sm sm:text-base ml-2">
-            R {product.price?.toFixed?.(2) ?? product.price}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="font-bold text-primary text-base sm:text-lg">
+              R {product.price?.toFixed?.(2) ?? product.price}
+            </p>
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              {product.category}
+            </span>
+          </div>
         </div>
 
         {/* Description */}
-        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">
+        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed flex-1">
           {product.description}
         </p>
 
-        {/* Category and Add to Cart */}
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            {product.category}
-          </span>
-          
+        {/* Add to Cart Button - Always at bottom */}
+        <div className="pt-2 mt-auto">
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => handleAdd()}
             disabled={adding || added}
-            className={`rounded-xl px-3 py-2 text-xs sm:text-sm font-medium text-white transition-all min-w-[100px] ${
+            className={`w-full rounded-xl px-3 py-3 text-sm font-medium text-white transition-all ${
               added 
                 ? 'bg-green-600' 
                 : adding 
@@ -261,7 +262,7 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
           >
             {added ? (
               <span className="flex items-center gap-1 justify-center">
-                <FiCheck size={14} />
+                <FiCheck size={16} />
                 Added
               </span>
             ) : adding ? (
