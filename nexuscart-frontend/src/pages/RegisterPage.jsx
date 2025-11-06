@@ -47,22 +47,26 @@ export default function RegisterPage() {
   const onSubmit = async (data) => {
     setError("");
     try {
-      const { data: response } = await api.register({
+      const userData = await api.register({
         name: data.name,
         email: data.email,
         password: data.password
       });
       
-      if (response.token) {
-        localStorage.setItem("token", response.token);
-        setUser(response);
+      if (userData && userData.token) {
+        localStorage.setItem("token", userData.token);
+        localStorage.setItem("userData", JSON.stringify(userData));
+        setUser(userData);
         setSuccess(true);
         setTimeout(() => {
-          navigate("/login");
+          navigate("/products");
         }, 2000);
+      } else {
+        throw new Error('Registration failed - no token received');
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Registration failed. Please try again.");
+      console.error('Registration error:', err);
+      setError(err.message || "Registration failed. Please try again.");
     }
   };
 
@@ -87,7 +91,7 @@ export default function RegisterPage() {
             <p className="text-gray-600 mb-4">Your account has been created successfully.</p>
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
               <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-              Redirecting to login...
+              Redirecting to products...
             </div>
           </div>
         ) : (

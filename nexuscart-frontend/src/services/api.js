@@ -25,12 +25,12 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - Handle different response structures
+// Response interceptor - Handle consistent response structure
 apiClient.interceptors.response.use(
   (response) => {
-    // If response has data property, return it directly
-    // Otherwise return the entire response
-    return response.data !== undefined ? response.data : response;
+    // For successful responses, return the data directly
+    // Our backend now uses { success, data, message } format
+    return response.data;
   },
   (error) => {
     if (error.response?.status === 401) {
@@ -51,30 +51,60 @@ export const api = {
   // Auth methods
   login: async (credentials) => {
     const response = await apiClient.post('/auth/login', credentials);
-    return response;
+    
+    // Handle response structure
+    if (response.success && response.data) {
+      return response.data; // Return user data with token
+    } else {
+      throw new Error(response.message || 'Login failed');
+    }
   },
 
   register: async (userData) => {
     const response = await apiClient.post('/auth/register', userData);
-    return response;
+    
+    // Handle response structure
+    if (response.success && response.data) {
+      return response.data; // Return user data with token
+    } else {
+      throw new Error(response.message || 'Registration failed');
+    }
   },
 
   getProfile: async () => {
     const response = await apiClient.get('/auth/profile');
-    return response;
+    
+    if (response.success && response.data) {
+      return response.data;
+    } else {
+      throw new Error(response.message || 'Failed to fetch profile');
+    }
   },
 
   updateProfile: async (userData) => {
     const response = await apiClient.put('/auth/profile', userData);
-    return response;
+    
+    if (response.success && response.data) {
+      return response.data;
+    } else {
+      throw new Error(response.message || 'Failed to update profile');
+    }
   },
 
-  // Product methods - Handle different response structures
+  // Product methods
   getProducts: async (params = {}) => {
     const response = await apiClient.get('/products', { params });
-    // If response is already the products array, return it
-    // If it's an object with products property, return that
-    return Array.isArray(response) ? { products: response } : response;
+    
+    // Handle different possible response structures
+    if (response.success && response.data) {
+      return response.data;
+    } else if (response.products) {
+      return response; // Direct products response
+    } else if (Array.isArray(response)) {
+      return { products: response }; // Array response
+    }
+    
+    return { products: [] };
   },
 
   getProduct: async (id) => {
@@ -84,7 +114,16 @@ export const api = {
 
   getCategories: async () => {
     const response = await apiClient.get('/products/categories');
-    return Array.isArray(response) ? response : (response.categories || response);
+    
+    if (Array.isArray(response)) {
+      return response;
+    } else if (response.categories) {
+      return response.categories;
+    } else if (response.data) {
+      return response.data;
+    }
+    
+    return [];
   },
 
   // Cart methods

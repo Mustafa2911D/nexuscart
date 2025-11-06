@@ -28,21 +28,23 @@ export default function LoginPage() {
   async function onSubmit(values) {
     setErr('')
     try {
-      const { data } = await api.login(values)
-      const token = data?.token
-      if (token) {
-        localStorage.setItem('token', token)
-        setUser(data)
+      const userData = await api.login(values)
+      
+      if (userData && userData.token) {
+        localStorage.setItem('token', userData.token)
+        localStorage.setItem('userData', JSON.stringify(userData))
+        setUser(userData)
         setOpen(true)
         setTimeout(() => {
           setOpen(false)
           navigate('/products')
         }, 1500)
       } else {
-        throw new Error('Invalid token response')
+        throw new Error('Invalid token response - no token received')
       }
     } catch (e) {
-      setErr(e.response?.data?.message || e.message || 'Login failed. Please check your credentials and try again.')
+      console.error('Login error:', e)
+      setErr(e.message || 'Login failed. Please check your credentials and try again.')
     }
   }
 
