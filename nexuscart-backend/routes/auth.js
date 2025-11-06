@@ -1,6 +1,8 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Cart = require('../models/Cart');
+const Order = require('../models/Order');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -191,6 +193,60 @@ router.put('/profile', protect, async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: 'Server error while updating profile' 
+    });
+  }
+});
+
+// DELETE /api/auth/account - Account deletion
+router.delete('/account', protect, async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    console.log('Account deletion attempt for user:', req.user._id);
+
+    if (!password) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Password is required to confirm account deletion' 
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await user.correctPassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false,
+        message: 'Password is incorrect' 
+      });
+    }
+
+    // Delete all user data
+    await Promise.all([
+      User.deleteOne({ _id: req.user._id }),
+      Cart.deleteOne({ user: req.user._id }),
+      Order.deleteMany({ user: req.user._id })
+    ]);
+
+    console.log('Account deleted successfully for user:', req.user._id);
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while deleting account' 
     });
   }
 });
