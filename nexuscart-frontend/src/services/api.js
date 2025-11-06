@@ -25,11 +25,9 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - Handle consistent response structure
+// Response interceptor
 apiClient.interceptors.response.use(
   (response) => {
-    // For successful responses, return the data directly
-    // Our backend now uses { success, data, message } format
     return response.data;
   },
   (error) => {
@@ -51,10 +49,8 @@ export const api = {
   // Auth methods
   login: async (credentials) => {
     const response = await apiClient.post('/auth/login', credentials);
-    
-    // Handle response structure
     if (response.success && response.data) {
-      return response.data; // Return user data with token
+      return response.data;
     } else {
       throw new Error(response.message || 'Login failed');
     }
@@ -62,10 +58,8 @@ export const api = {
 
   register: async (userData) => {
     const response = await apiClient.post('/auth/register', userData);
-    
-    // Handle response structure
     if (response.success && response.data) {
-      return response.data; // Return user data with token
+      return response.data;
     } else {
       throw new Error(response.message || 'Registration failed');
     }
@@ -73,7 +67,6 @@ export const api = {
 
   getProfile: async () => {
     const response = await apiClient.get('/auth/profile');
-    
     if (response.success && response.data) {
       return response.data;
     } else {
@@ -83,7 +76,6 @@ export const api = {
 
   updateProfile: async (userData) => {
     const response = await apiClient.put('/auth/profile', userData);
-    
     if (response.success && response.data) {
       return response.data;
     } else {
@@ -91,19 +83,34 @@ export const api = {
     }
   },
 
+  updatePassword: async (passwordData) => {
+    const response = await apiClient.put('/auth/password', passwordData);
+    if (response.success) {
+      return response;
+    } else {
+      throw new Error(response.message || 'Failed to update password');
+    }
+  },
+
+  deleteAccount: async (passwordData) => {
+    const response = await apiClient.delete('/auth/account', { data: passwordData });
+    if (response.success) {
+      return response;
+    } else {
+      throw new Error(response.message || 'Failed to delete account');
+    }
+  },
+
   // Product methods
   getProducts: async (params = {}) => {
     const response = await apiClient.get('/products', { params });
-    
-    // Handle different possible response structures
     if (response.success && response.data) {
       return response.data;
     } else if (response.products) {
-      return response; // Direct products response
+      return response;
     } else if (Array.isArray(response)) {
-      return { products: response }; // Array response
+      return { products: response };
     }
-    
     return { products: [] };
   },
 
@@ -114,7 +121,6 @@ export const api = {
 
   getCategories: async () => {
     const response = await apiClient.get('/products/categories');
-    
     if (Array.isArray(response)) {
       return response;
     } else if (response.categories) {
@@ -122,7 +128,6 @@ export const api = {
     } else if (response.data) {
       return response.data;
     }
-    
     return [];
   },
 
