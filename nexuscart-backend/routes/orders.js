@@ -18,29 +18,30 @@ router.post('/', (req, res) => {
       return res.status(400).json({ message: 'Valid total amount is required' });
     }
     
-    // Create new order
+    // Create new order with proper image handling
     const newOrder = {
-      _id: `order_${orderIdCounter++}`,
+      _id: `order_${Date.now()}_${orderIdCounter++}`,
       items: items.map(item => ({
-        productId: item.id || item._id,
-        name: item.name,
-        price: item.price,
+        _id: item._id || `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        productId: item.productId || item._id,
+        name: item.name || item.product?.name,
+        price: item.price || item.product?.price,
         quantity: item.quantity,
         size: item.size || '',
-        image: item.image || ''
+        image: item.image || item.product?.image || '/images/placeholder-product.jpg'
       })),
       total: total,
       shippingAddress: shippingAddress || 'Not provided',
-      paymentMethod: paymentMethod || 'Not specified',
+      paymentMethod: paymentMethod || 'Credit Card',
       status: 'completed',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     
     // Store the order 
     orders.push(newOrder);
     
-    console.log('New order created:', newOrder._id);
+    console.log('New order created:', newOrder._id, 'with', newOrder.items.length, 'items');
     
     res.status(201).json(newOrder);
   } catch (error) {
@@ -52,7 +53,9 @@ router.post('/', (req, res) => {
 // GET /api/orders 
 router.get('/', (req, res) => {
   try {
-    res.json(orders);
+    // Return orders in reverse chronological order
+    const sortedOrders = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json(sortedOrders);
   } catch (error) {
     console.error('Get orders error:', error);
     res.status(500).json({ message: 'Failed to fetch orders' });
@@ -90,7 +93,7 @@ router.put('/:id', (req, res) => {
     
     // Update order status
     order.status = status || order.status;
-    order.updatedAt = new Date();
+    order.updatedAt = new Date().toISOString();
     
     res.json(order);
   } catch (error) {

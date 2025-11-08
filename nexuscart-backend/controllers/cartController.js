@@ -226,16 +226,6 @@ const checkout = async (req, res) => {
       });
     }
     
-    // Validate all items are in stock
-    for (const item of cart.items) {
-      if (!item.product.inStock) {
-        return res.status(400).json({
-          success: false,
-          message: `Product "${item.product.name}" is out of stock`
-        });
-      }
-    }
-    
     // Calculate total
     const total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     

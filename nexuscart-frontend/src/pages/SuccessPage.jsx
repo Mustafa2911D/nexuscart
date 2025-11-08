@@ -48,6 +48,14 @@ export default function SuccessPage() {
     visible: { opacity: 1, y: 0 }
   }
 
+  // Fix image URLs - ensure they're properly formatted
+  const getImageUrl = (image) => {
+    if (!image) return '/images/placeholder-product.jpg';
+    if (image.startsWith('http')) return image;
+    if (image.startsWith('/')) return image;
+    return `/${image}`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-indigo-50 py-8 px-4">
       {/* Confetti Effect */}
@@ -160,7 +168,7 @@ export default function SuccessPage() {
                         <div>
                           <p className="text-sm text-gray-600">Order Date</p>
                           <p className="font-semibold text-gray-900">
-                            {new Date().toLocaleDateString('en-US', {
+                            {new Date(order.createdAt || Date.now()).toLocaleDateString('en-US', {
                               weekday: 'long',
                               year: 'numeric',
                               month: 'long',
@@ -199,31 +207,34 @@ export default function SuccessPage() {
                   {/* Order Items */}
                   <div className="border-t pt-6">
                     <h3 className="font-semibold text-gray-900 mb-4">
-                      Order Items ({order.items?.length})
+                      Order Items ({order.items?.length || 0})
                     </h3>
                     <div className="space-y-3">
                       {order.items?.slice(0, 3).map((item, index) => (
                         <motion.div
-                          key={item._id}
+                          key={item._id || index}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
                           className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                         >
                           <img 
-                            src={item.image} 
-                            alt={item.name}
+                            src={getImageUrl(item.image || item.product?.image)} 
+                            alt={item.name || item.product?.name}
                             className="w-12 h-12 object-cover rounded-lg"
+                            onError={(e) => {
+                              e.target.src = '/images/placeholder-product.jpg';
+                            }}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 truncate">{item.name}</p>
+                            <p className="font-medium text-gray-900 truncate">{item.name || item.product?.name}</p>
                             <p className="text-sm text-gray-600">
-                              Qty: {item.quantity} • R {item.price}
+                              Qty: {item.quantity} • R {item.price || item.product?.price}
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="font-semibold text-gray-900">
-                              R {(item.price * item.quantity).toFixed(2)}
+                              R {((item.price || item.product?.price) * item.quantity).toFixed(2)}
                             </p>
                           </div>
                         </motion.div>
@@ -325,8 +336,8 @@ export default function SuccessPage() {
               </div>
             </div>
 
-            {/* Order Timeline */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            {/* Order Timeline - Fixed sticky positioning */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-[400px]">
               <h3 className="font-semibold text-gray-900 mb-4">Order Status</h3>
               <div className="space-y-4">
                 {[

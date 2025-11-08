@@ -54,10 +54,20 @@ export default function ProfilePage() {
           api.getOrders()
         ]);
         
-        const userData = profileResponse.data;
+        const userData = profileResponse.data || profileResponse;
         setUser(userData);
         setAvatarPreview(userData?.avatar || null);
-        setOrders(Array.isArray(ordersResponse.data) ? ordersResponse.data : []);
+        
+        // Fix orders data structure
+        let ordersData = [];
+        if (Array.isArray(ordersResponse)) {
+          ordersData = ordersResponse;
+        } else if (ordersResponse && Array.isArray(ordersResponse.data)) {
+          ordersData = ordersResponse.data;
+        } else if (ordersResponse && ordersResponse.orders) {
+          ordersData = ordersResponse.orders;
+        }
+        setOrders(ordersData);
       } catch (err) {
         console.error('Failed to load user data:', err);
         setError(err.response?.data?.message || err.message || 'Failed to load user info');
@@ -73,7 +83,17 @@ export default function ProfilePage() {
   const fetchOrders = async () => {
     try {
       const ordersData = await api.getOrders();
-      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      let ordersArray = [];
+      
+      if (Array.isArray(ordersData)) {
+        ordersArray = ordersData;
+      } else if (ordersData && Array.isArray(ordersData.data)) {
+        ordersArray = ordersData.data;
+      } else if (ordersData && ordersData.orders) {
+        ordersArray = ordersData.orders;
+      }
+      
+      setOrders(ordersArray);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
       setOrders([]);
@@ -128,8 +148,9 @@ export default function ProfilePage() {
         avatar: base64Image
       };
       
-      const { data } = await api.updateProfile(payload);
-      setUser(data);
+      const response = await api.updateProfile(payload);
+      const userData = response.data || response;
+      setUser(userData);
       setSuccess('Avatar updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
@@ -152,8 +173,9 @@ export default function ProfilePage() {
         avatar: user.avatar
       };
       
-      const { data } = await api.updateProfile(payload);
-      setUser(data);
+      const response = await api.updateProfile(payload);
+      const userData = response.data || response;
+      setUser(userData);
       setSuccess('Profile updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
@@ -237,6 +259,31 @@ export default function ProfilePage() {
       [field]: !prev[field]
     }));
   };
+
+  // Fix image URLs
+  const getImageUrl = (image) => {
+    if (!image) return '/images/placeholder-product.jpg';
+    if (image.startsWith('http')) return image;
+    if (image.startsWith('/')) return image;
+    return `/${image}`;
+  };
+
+  // Fix date display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
+
+  // Calculate total spent
+  const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
 
   if (loading) {
     return (
@@ -492,15 +539,15 @@ export default function ProfilePage() {
                     </button>
                   </div>
 
-                  {/* Account Statistics */}
+                  {/* Account Statistics - Fixed data display */}
                   <div className="mt-12 pt-8 border-t border-gray-200">
                     <h3 className="text-2xl font-bold text-gray-900 mb-6">Account Overview</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                       {[
                         { label: 'Total Orders', value: orders.length, icon: FiPackage, color: 'blue' },
                         { label: 'Wishlist Items', value: wishlistItems.length, icon: FiHeart, color: 'pink' },
-                        { label: 'Member Since', value: new Date(user.createdAt).toLocaleDateString(), icon: FiCalendar, color: 'green' },
-                        { label: 'Total Spent', value: `R${orders.reduce((sum, order) => sum + (order.total || 0), 0).toFixed(2)}`, icon: FiShoppingBag, color: 'purple' }
+                        { label: 'Member Since', value: formatDate(user.createdAt), icon: FiCalendar, color: 'green' },
+                        { label: 'Total Spent', value: `R${totalSpent.toFixed(2)}`, icon: FiShoppingBag, color: 'purple' }
                       ].map((stat, index) => (
                         <motion.div
                           key={stat.label}
@@ -571,11 +618,7 @@ export default function ProfilePage() {
                               </p>
                               <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
                                 <FiCalendar className="text-gray-400" />
-                                {new Date(order.createdAt).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
-                                })}
+                                {formatDate(order.createdAt)}
                               </p>
                             </div>
                             <div className="flex items-center gap-4">
@@ -594,22 +637,25 @@ export default function ProfilePage() {
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            {order.items.slice(0, 2).map((item, idx) => (
+                            {order.items?.slice(0, 2).map((item, idx) => (
                               <div key={idx} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
                                 <img 
-                                  src={item.image} 
-                                  alt={item.name}
+                                  src={getImageUrl(item.image || item.product?.image)} 
+                                  alt={item.name || item.product?.name}
                                   className="w-16 h-16 object-cover rounded-lg"
+                                  onError={(e) => {
+                                    e.target.src = '/images/placeholder-product.jpg';
+                                  }}
                                 />
                                 <div className="flex-1">
-                                  <p className="font-semibold text-gray-900 text-sm">{item.name}</p>
+                                  <p className="font-semibold text-gray-900 text-sm">{item.name || item.product?.name}</p>
                                   <p className="text-sm text-gray-600">
-                                    {item.quantity} × R{item.price}
+                                    {item.quantity} × R{item.price || item.product?.price}
                                   </p>
                                 </div>
                               </div>
                             ))}
-                            {order.items.length > 2 && (
+                            {order.items?.length > 2 && (
                               <div className="flex items-center justify-center p-3 bg-gray-50 rounded-xl">
                                 <span className="text-sm text-gray-600 font-medium">
                                   +{order.items.length - 2} more items
@@ -694,15 +740,18 @@ export default function ProfilePage() {
                           <div className="flex flex-col h-full">
                             <div className="flex gap-4 mb-4">
                               <img 
-                                src={item.image} 
+                                src={getImageUrl(item.image)} 
                                 alt={item.name}
                                 className="w-20 h-20 object-cover rounded-xl flex-shrink-0"
+                                onError={(e) => {
+                                  e.target.src = '/images/placeholder-product.jpg';
+                                }}
                               />
                               <div className="flex-1 min-w-0">
                                 <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{item.name}</h3>
                                 <p className="text-primary font-bold text-lg mb-2">R {item.price}</p>
                                 <p className="text-xs text-gray-500">
-                                  Added {new Date(item.addedAt).toLocaleDateString()}
+                                  Added {formatDate(item.addedAt)}
                                 </p>
                               </div>
                             </div>
