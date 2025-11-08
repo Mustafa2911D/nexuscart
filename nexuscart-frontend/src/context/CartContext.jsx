@@ -236,77 +236,47 @@ export function CartProvider({ children }) {
     }
 
     const checkout = async (orderData) => {
-  try {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    
-    const token = localStorage.getItem('token');
-    let orderResult;
-
-    console.log('Checkout started with items:', state.items); // Debug log
-
-    if (token) {
-      // Authenticated user - create order via backend
       try {
-        const orderPayload = {
-          items: state.items.map(item => ({
-            productId: item.product?._id || item._id,
-            name: item.product?.name || item.name,
-            price: item.product?.price || item.price,
-            quantity: item.quantity,
-            size: item.size || '',
-            image: item.product?.image || item.image
-          })),
-          total: totalPrice,
-          shippingAddress: orderData.shippingAddress,
-          paymentMethod: orderData.paymentMethod || 'Credit Card'
-        };
-
-        console.log('Sending order to backend:', orderPayload); // Debug log
+        dispatch({ type: 'SET_LOADING', payload: true });
         
-        orderResult = await api.checkout(orderPayload);
-        console.log('Backend order response:', orderResult); // Debug log
-      } catch (backendError) {
-        console.error('Backend checkout failed, falling back to local:', backendError);
-        // Fallback to local order creation
-        orderResult = {
-          _id: `order_${Date.now()}`,
-          items: state.items,
-          total: totalPrice,
-          shippingAddress: orderData.shippingAddress || 'Not provided',
-          paymentMethod: orderData.paymentMethod || 'Credit Card',
-          status: 'completed',
-          createdAt: new Date().toISOString()
-        };
+        const token = localStorage.getItem('token');
+        let orderResult;
+
+        if (token) {
+          // Authenticated user - create order via backend
+          orderResult = await api.checkout({
+            shippingAddress: orderData.shippingAddress,
+            paymentMethod: orderData.paymentMethod || 'Credit Card'
+          });
+        } else {
+          // Guest user - create order locally
+          const total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          
+          orderResult = {
+            _id: `order_${Date.now()}`,
+            items: state.items,
+            total: total,
+            shippingAddress: orderData.shippingAddress || 'Not provided',
+            paymentMethod: orderData.paymentMethod || 'Credit Card',
+            status: 'completed',
+            createdAt: new Date().toISOString()
+          };
+        }
+
+        // Clear cart after successful checkout
+        dispatch({ type: 'CLEAR_CART' });
+        localStorage.removeItem('nexuscart-cart');
+
+        return orderResult;
+        
+      } catch (error) {
+        console.error('Checkout error:', error);
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        throw error;
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
-    } else {
-      // Guest user - create order locally
-      orderResult = {
-        _id: `order_${Date.now()}`,
-        items: state.items,
-        total: totalPrice,
-        shippingAddress: orderData.shippingAddress || 'Not provided',
-        paymentMethod: orderData.paymentMethod || 'Credit Card',
-        status: 'completed',
-        createdAt: new Date().toISOString()
-      };
-    }
-
-    console.log('Final order result:', orderResult); // Debug log
-
-    // Clear cart after successful checkout
-    dispatch({ type: 'CLEAR_CART' });
-    localStorage.removeItem('nexuscart-cart');
-
-    return orderResult;
-    
-  } catch (error) {
-    console.error('Checkout error:', error);
-    dispatch({ type: 'SET_ERROR', payload: error.message });
-    throw error;
-  } finally {
-    dispatch({ type: 'SET_LOADING', payload: false });
-  }
-};
+    };
 
     // Function to manually sync cart (useful after login)
     const manualSyncCart = async () => {
