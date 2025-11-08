@@ -982,3 +982,66 @@ export default function ProfilePage() {
     </div>
   );
 }
+// Add this function in the ProfilePage component
+const debugOrders = async () => {
+  try {
+    console.log('Testing orders API...');
+    const orders = await api.getOrders();
+    console.log('Current orders from API:', orders);
+    
+    // Test creating a sample order
+    const testOrder = {
+      items: [{
+        productId: 'test_product_1',
+        name: 'Test Product',
+        price: 99.99,
+        quantity: 1,
+        size: 'M',
+        image: '/images/placeholder-product.jpg'
+      }],
+      total: 99.99,
+      shippingAddress: 'Test Address',
+      paymentMethod: 'Credit Card'
+    };
+    
+    console.log('Creating test order...');
+    const newOrder = await api.checkout(testOrder);
+    console.log('Test order created:', newOrder);
+    
+    // Refresh orders
+    await fetchOrders();
+    
+  } catch (error) {
+    console.error('Debug orders error:', error);
+  }
+};
+
+// Add a debug button in the orders tab (temporarily):
+{orders.length === 0 && (
+  <div className="text-center py-16">
+    <FiShoppingBag className="text-6xl text-gray-300 mx-auto mb-6" />
+    <h3 className="text-2xl font-semibold text-gray-600 mb-4">No orders yet</h3>
+    <p className="text-gray-500 mb-8 max-w-md mx-auto">
+      Start shopping and your order history will appear here.
+    </p>
+    <div className="flex gap-4 justify-center">
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate('/products')}
+        className="bg-primary text-white px-8 py-4 rounded-xl hover:bg-indigo-600 transition-all shadow-lg hover:shadow-xl"
+      >
+        Start Shopping
+      </motion.button>
+      {/* Temporary debug button - remove after testing */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={debugOrders}
+        className="bg-gray-500 text-white px-8 py-4 rounded-xl hover:bg-gray-600 transition-all shadow-lg hover:shadow-xl"
+      >
+        Debug Orders
+      </motion.button>
+    </div>
+  </div>
+)}

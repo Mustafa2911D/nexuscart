@@ -158,10 +158,11 @@ export const api = {
   },
 
   checkout: async (orderData) => {
-    const response = await apiClient.post('/cart/checkout', orderData);
-    return response.data || response;
-  },
-
+  console.log('API checkout called with:', orderData); // Debug log
+  const response = await apiClient.post('/orders', orderData);
+  console.log('API checkout response:', response); // Debug log
+  return response;
+},
   // Order methods
 getOrders: async () => {
   try {
