@@ -5,12 +5,15 @@ import { useState } from 'react'
 export default function CartSummary() {
   const { totalItems, totalPrice, items, clearCart, checkout } = useCart()
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [checkoutError, setCheckoutError] = useState('')
   const navigate = useNavigate()
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
     
     setCheckoutLoading(true);
+    setCheckoutError('');
+    
     try {
       const order = await checkout({
         shippingAddress: "User's address", // You can get this from user profile
@@ -21,7 +24,7 @@ export default function CartSummary() {
       navigate('/success', { state: { order } });
     } catch (error) {
       console.error('Checkout failed:', error);
-      alert('Checkout failed. Please try again.');
+      setCheckoutError(error.message || 'Checkout failed. Please try again.');
     } finally {
       setCheckoutLoading(false);
     }
@@ -34,6 +37,12 @@ export default function CartSummary() {
   return (
     <div className="rounded-2xl bg-gray-50 p-6">
       <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+      
+      {checkoutError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {checkoutError}
+        </div>
+      )}
       
       <div className="space-y-3 mb-4">
         <div className="flex justify-between text-sm">

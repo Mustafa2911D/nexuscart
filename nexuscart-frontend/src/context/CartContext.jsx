@@ -168,6 +168,20 @@ export function CartProvider({ children }) {
         // Guest user - add to local state only
         dispatch({ 
           type: 'ADD_TO_CART', 
+            payload: {
+              ...product,
+              quantity,
+              size: size || ''
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Failed to add item to cart:', error);
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        
+        // Always fallback to local state on error
+        dispatch({ 
+          type: 'ADD_TO_CART', 
           payload: {
             ...product,
             quantity,
@@ -175,135 +189,123 @@ export function CartProvider({ children }) {
           }
         });
       }
-    } catch (error) {
-      console.error('Failed to add item to cart:', error);
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      
-      // Always fallback to local state on error
-      dispatch({ 
-        type: 'ADD_TO_CART', 
-        payload: {
-          ...product,
-          quantity,
-          size: size || ''
+    }
+
+    async function updateQuantity(itemId, quantity) {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await api.updateCartItem(itemId, quantity);
         }
-      });
-    }
-  }
-
-  async function updateQuantity(itemId, quantity) {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        await api.updateCartItem(itemId, quantity);
+        dispatch({ type: 'UPDATE_QTY', payload: { id: itemId, quantity } });
+      } catch (error) {
+        console.error('Failed to update cart item:', error);
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        dispatch({ type: 'UPDATE_QTY', payload: { id: itemId, quantity } });
       }
-      dispatch({ type: 'UPDATE_QTY', payload: { id: itemId, quantity } });
-    } catch (error) {
-      console.error('Failed to update cart item:', error);
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      dispatch({ type: 'UPDATE_QTY', payload: { id: itemId, quantity } });
     }
-  }
 
-  async function removeFromCart(itemId) {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        await api.removeFromCart(itemId);
+    async function removeFromCart(itemId) {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await api.removeFromCart(itemId);
+        }
+        dispatch({ type: 'REMOVE_ITEM', payload: { id: itemId } });
+      } catch (error) {
+        console.error('Failed to remove item from cart:', error);
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        dispatch({ type: 'REMOVE_ITEM', payload: { id: itemId } });
       }
-      dispatch({ type: 'REMOVE_ITEM', payload: { id: itemId } });
-    } catch (error) {
-      console.error('Failed to remove item from cart:', error);
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      dispatch({ type: 'REMOVE_ITEM', payload: { id: itemId } });
     }
-  }
 
-  async function clearCart() {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        await api.clearCart();
+    async function clearCart() {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await api.clearCart();
+        }
+        dispatch({ type: 'CLEAR_CART' });
+        setPersisted({ ...initialState, items: [] });
+      } catch (error) {
+        console.error('Failed to clear cart:', error);
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        dispatch({ type: 'CLEAR_CART' });
+        setPersisted({ ...initialState, items: [] });
       }
-      dispatch({ type: 'CLEAR_CART' });
-      setPersisted({ ...initialState, items: [] });
-    } catch (error) {
-      console.error('Failed to clear cart:', error);
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      dispatch({ type: 'CLEAR_CART' });
-      setPersisted({ ...initialState, items: [] });
-    }
-  }
-
-  // Function to manually sync cart (useful after login)
-  const manualSyncCart = async () => {
-    await syncCartWithBackend();
-  };
-
-  const value = useMemo(
-    () => ({
-      ...state,
-      totalItems,
-      totalPrice,
-      dispatch,
-      addToCart,
-      updateQuantity,
-      removeFromCart,
-      clearCart,
-      syncCartWithBackend: manualSyncCart,
-    }),
-    [state, totalItems, totalPrice]
-  )
-
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
-}
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
-}
-const checkout = async (orderData) => {
-  try {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    
-    const token = localStorage.getItem('token');
-    let orderResult;
-
-    if (token) {
-      // Authenticated user - create order via backend
-      orderResult = await api.checkout({
-        shippingAddress: orderData.shippingAddress,
-        paymentMethod: orderData.paymentMethod || 'Credit Card'
-      });
-    } else {
-      // Guest user - create order locally
-      const total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      
-      orderResult = {
-        _id: `order_${Date.now()}`,
-        items: state.items,
-        total: total,
-        shippingAddress: orderData.shippingAddress || 'Not provided',
-        paymentMethod: orderData.paymentMethod || 'Credit Card',
-        status: 'completed',
-        createdAt: new Date().toISOString()
-      };
     }
 
-    // Clear cart after successful checkout
-    dispatch({ type: 'CLEAR_CART' });
-    localStorage.removeItem('nexuscart-cart');
+    const checkout = async (orderData) => {
+      try {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        
+        const token = localStorage.getItem('token');
+        let orderResult;
 
-    return orderResult;
-    
-  } catch (error) {
-    console.error('Checkout error:', error);
-    dispatch({ type: 'SET_ERROR', payload: error.message });
-    throw error;
-  } finally {
-    dispatch({ type: 'SET_LOADING', payload: false });
+        if (token) {
+          // Authenticated user - create order via backend
+          orderResult = await api.checkout({
+            shippingAddress: orderData.shippingAddress,
+            paymentMethod: orderData.paymentMethod || 'Credit Card'
+          });
+        } else {
+          // Guest user - create order locally
+          const total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          
+          orderResult = {
+            _id: `order_${Date.now()}`,
+            items: state.items,
+            total: total,
+            shippingAddress: orderData.shippingAddress || 'Not provided',
+            paymentMethod: orderData.paymentMethod || 'Credit Card',
+            status: 'completed',
+            createdAt: new Date().toISOString()
+          };
+        }
+
+        // Clear cart after successful checkout
+        dispatch({ type: 'CLEAR_CART' });
+        localStorage.removeItem('nexuscart-cart');
+
+        return orderResult;
+        
+      } catch (error) {
+        console.error('Checkout error:', error);
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        throw error;
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    };
+
+    // Function to manually sync cart (useful after login)
+    const manualSyncCart = async () => {
+      await syncCartWithBackend();
+    };
+
+    const value = useMemo(
+      () => ({
+        ...state,
+        totalItems,
+        totalPrice,
+        dispatch,
+        addToCart,
+        updateQuantity,
+        removeFromCart,
+        clearCart,
+        checkout,
+        syncCartWithBackend: manualSyncCart,
+      }),
+      [state, totalItems, totalPrice]
+    )
+
+    return <CartContext.Provider value={value}>{children}</CartContext.Provider>
   }
-};
+
+  export const useCart = () => {
+    const context = useContext(CartContext);
+    if (!context) {
+      throw new Error('useCart must be used within a CartProvider');
+    }
+    return context;
+  }
