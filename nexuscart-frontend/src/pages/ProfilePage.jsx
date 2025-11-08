@@ -534,7 +534,118 @@ export default function ProfilePage() {
                   exit="exit"
                   className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
                 >
-                  {/* ... (profile tab content remains the same) ... */}
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-3xl font-bold text-gray-900">Profile Information</h2>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Full Name</label>
+                      <input
+                        type="text"
+                        value={user.name || ''}
+                        onChange={(e) => setUser({ ...user, name: e.target.value })}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        placeholder="Enter your full name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Email Address</label>
+                      <input
+                        type="email"
+                        value={user.email || ''}
+                        onChange={(e) => setUser({ ...user, email: e.target.value })}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        placeholder="Enter your email"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Phone Number</label>
+                      <input
+                        type="tel"
+                        value={user.number || ''}
+                        onChange={(e) => {
+                          const cleaned = e.target.value.replace(/\D/g, '');
+                          setUser({ ...user, number: cleaned });
+                        }}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        placeholder="Enter your phone number"
+                      />
+                    </div>
+
+                    <div className="lg:col-span-2">
+                      <label className="flex text-sm font-semibold text-gray-700 mb-3 items-center gap-2">
+                        <FiHome className="text-gray-500" /> 
+                        Shipping Address
+                      </label>
+                      <textarea
+                        value={user.address || ''}
+                        onChange={(e) => setUser({ ...user, address: e.target.value })}
+                        rows={4}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                        placeholder="Enter your complete shipping address"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleProfileUpdate}
+                      disabled={updating}
+                      className="bg-primary text-white px-8 py-4 rounded-xl hover:bg-indigo-600 transition-all flex items-center gap-3 disabled:opacity-50 shadow-lg hover:shadow-xl"
+                    >
+                      {updating ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <FiCheck className="text-xl" />
+                          Save Changes
+                        </>
+                      )}
+                    </motion.button>
+                    
+                    <button
+                      onClick={() => setUser({ ...user, name: '', email: '', number: '', address: '' })}
+                      className="text-gray-600 hover:text-gray-800 px-4 py-2 transition-colors"
+                    >
+                      Reset
+                    </button>
+                  </div>
+
+                  {/* Account Statistics */}
+                  <div className="mt-12 pt-8 border-t border-gray-200">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Account Overview</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      {[
+                        { label: 'Total Orders', value: orders.length, icon: FiPackage, color: 'blue' },
+                        { label: 'Wishlist Items', value: wishlistItems.length, icon: FiHeart, color: 'pink' },
+                        { label: 'Member Since', value: formatDate(user.createdAt), icon: FiCalendar, color: 'green' },
+                        { label: 'Total Spent', value: `R${totalSpent.toFixed(2)}`, icon: FiShoppingBag, color: 'purple' }
+                      ].map((stat, index) => (
+                        <motion.div
+                          key={stat.label}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group"
+                        >
+                          <div className={`w-12 h-12 bg-${stat.color}-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                            <stat.icon className={`text-${stat.color}-600 text-xl`} />
+                          </div>
+                          <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                          <div className="text-sm text-gray-600">{stat.label}</div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
                 </motion.div>
               )}
 
@@ -668,7 +779,98 @@ export default function ProfilePage() {
                   exit="exit"
                   className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
                 >
-                  {/* ... (wishlist tab content remains the same) ... */}
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Your Wishlist
+                      <span className="text-primary ml-3">({wishlistItems.length})</span>
+                    </h2>
+                    {wishlistItems.length > 0 && (
+                      <button
+                        onClick={clearWishlist}
+                        className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-2"
+                      >
+                        <FiTrash2 />
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                  
+                  {wishlistItems.length === 0 ? (
+                    <div className="text-center py-16">
+                      <FiHeart className="text-6xl text-gray-300 mx-auto mb-6" />
+                      <h3 className="text-2xl font-semibold text-gray-600 mb-4">Your wishlist is empty</h3>
+                      <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                        Save items you love to your wishlist. Review them anytime and easily move them to your cart.
+                      </p>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/products')}
+                        className="bg-primary text-white px-8 py-4 rounded-xl hover:bg-indigo-600 transition-all shadow-lg hover:shadow-xl"
+                      >
+                        Browse Products
+                      </motion.button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {wishlistItems.map((item, index) => (
+                        <motion.div
+                          key={item._id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all group"
+                        >
+                          <div className="flex flex-col h-full">
+                            <div className="flex gap-4 mb-4">
+                              <img 
+                                src={getImageUrl(item.image)} 
+                                alt={item.name}
+                                className="w-20 h-20 object-cover rounded-xl flex-shrink-0"
+                                onError={(e) => {
+                                  e.target.src = '/images/placeholder-product.jpg';
+                                }}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{item.name}</h3>
+                                <p className="text-primary font-bold text-lg mb-2">R {item.price}</p>
+                                <p className="text-xs text-gray-500">
+                                  Added {formatDate(item.addedAt)}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex gap-2 mt-auto pt-4">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => {
+                                  addToCart({
+                                    _id: item._id,
+                                    name: item.name,
+                                    price: item.price,
+                                    image: item.image,
+                                    category: item.category
+                                  }, null, 1)
+                                }}
+                                className="flex-1 bg-primary text-white py-3 rounded-xl hover:bg-indigo-600 transition-colors font-semibold text-sm"
+                              >
+                                Add to Cart
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => removeFromWishlist(item._id)}
+                                className="px-4 py-3 border border-gray-300 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
+                              >
+                                <FiTrash2 className="text-lg" />
+                              </motion.button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
               )}
 
@@ -682,7 +884,179 @@ export default function ProfilePage() {
                   exit="exit"
                   className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
                 >
-                  {/* ... (settings tab content remains the same) ... */}
+                  <h2 className="text-3xl font-bold text-gray-900 mb-8">Account Settings</h2>
+                  
+                  <div className="space-y-8">
+                    {/* Change Password */}
+                    <div className="bg-gray-50 rounded-2xl p-6">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                          <FiLock className="text-white text-lg" />
+                        </div>
+                        Change Password
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {[
+                          {
+                            label: 'Current Password',
+                            value: passwordData.currentPassword,
+                            onChange: (value) => setPasswordData({...passwordData, currentPassword: value}),
+                            show: showPasswords.current,
+                            toggle: () => togglePasswordVisibility('current')
+                          },
+                          {
+                            label: 'New Password',
+                            value: passwordData.newPassword,
+                            onChange: (value) => setPasswordData({...passwordData, newPassword: value}),
+                            show: showPasswords.new,
+                            toggle: () => togglePasswordVisibility('new')
+                          },
+                          {
+                            label: 'Confirm New Password',
+                            value: passwordData.confirmPassword,
+                            onChange: (value) => setPasswordData({...passwordData, confirmPassword: value}),
+                            show: showPasswords.confirm,
+                            toggle: () => togglePasswordVisibility('confirm')
+                          }
+                        ].map((field, index) => (
+                          <div key={field.label} className={field.label === 'Confirm New Password' ? 'md:col-span-2' : ''}>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              {field.label}
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={field.show ? "text" : "password"}
+                                value={field.value}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-full rounded-xl border border-gray-300 px-4 py-3 pr-12 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                placeholder={`Enter ${field.label.toLowerCase()}`}
+                              />
+                              <button
+                                type="button"
+                                onClick={field.toggle}
+                                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                              >
+                                {field.show ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex gap-4 mt-6">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={handlePasswordUpdate}
+                          disabled={passwordUpdating}
+                          className="bg-primary text-white px-6 py-3 rounded-xl hover:bg-indigo-600 transition-all disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {passwordUpdating ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              Updating...
+                            </>
+                          ) : (
+                            <>
+                              <FiCheck />
+                              Update Password
+                            </>
+                          )}
+                        </motion.button>
+                        
+                        <button
+                          onClick={() => setPasswordData({
+                            currentPassword: '',
+                            newPassword: '',
+                            confirmPassword: ''
+                          })}
+                          className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Danger Zone */}
+                    <div className="border border-red-200 rounded-2xl p-6 bg-red-50">
+                      <h3 className="text-xl font-semibold text-red-700 mb-4 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center">
+                          <FiTrash2 className="text-white text-lg" />
+                        </div>
+                        Danger Zone
+                      </h3>
+                      
+                      {!showDeleteConfirm ? (
+                        <div>
+                          <p className="text-red-600 mb-4">
+                            Once you delete your account, there is no going back. All your data will be permanently removed.
+                          </p>
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="bg-red-600 text-white px-6 py-3 rounded-xl hover:bg-red-700 transition-all flex items-center gap-2"
+                          >
+                            <FiTrash2 />
+                            Delete Account
+                          </motion.button>
+                        </div>
+                      ) : (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="space-y-4"
+                        >
+                          <p className="text-red-700 font-medium">
+                            Are you absolutely sure? This action cannot be undone.
+                          </p>
+                          <div>
+                            <label className="block text-sm font-semibold text-red-700 mb-2">
+                              Enter your password to confirm:
+                            </label>
+                            <input
+                              type="password"
+                              value={deleteConfirm}
+                              onChange={(e) => setDeleteConfirm(e.target.value)}
+                              className="w-full rounded-xl border border-red-300 px-4 py-3 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all"
+                              placeholder="Enter your password"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={handleDeleteAccount}
+                              disabled={deleting}
+                              className="bg-red-600 text-white px-6 py-3 rounded-xl hover:bg-red-700 transition-all disabled:opacity-50 flex items-center gap-2"
+                            >
+                              {deleting ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  Deleting...
+                                </>
+                              ) : (
+                                <>
+                                  <FiTrash2 />
+                                  Confirm Delete
+                                </>
+                              )}
+                            </motion.button>
+                            <button
+                              onClick={() => {
+                                setShowDeleteConfirm(false);
+                                setDeleteConfirm('');
+                              }}
+                              className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
