@@ -167,17 +167,17 @@ getOrders: async () => {
   try {
     const response = await apiClient.get('/orders');
     
-    console.log('Orders API response:', response); // Debug log
+    console.log('Orders API response:', response); 
     
     // Handle different response structures
     if (Array.isArray(response)) {
-      return response; // Direct array from MongoDB
+      return response; 
     } else if (response && Array.isArray(response.data)) {
-      return response.data; // { data: [] } format
+      return response.data; 
     } else if (response && response.orders) {
-      return response.orders; // { orders: [] } format
+      return response.orders; 
     } else if (response && response.success && Array.isArray(response.data)) {
-      return response.data; // { success: true, data: [] } format
+      return response.data; 
     }
     
     console.warn('Unexpected orders response format:', response);

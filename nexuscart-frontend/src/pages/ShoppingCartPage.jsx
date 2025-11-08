@@ -15,7 +15,6 @@ export default function ShoppingCartPage() {
   
   const confirmClear = async () => {
     setIsClearing(true)
-    // Add a small delay for better UX
     await new Promise(resolve => setTimeout(resolve, 500))
     dispatch({ type: "CLEAR_CART" })
     setShowConfirm(false)
@@ -201,7 +200,7 @@ export default function ShoppingCartPage() {
               </motion.div>
             </div>
 
-            {/* Cart Summary - Sticky */}
+            {/* Cart Summary */}
             <div className="lg:sticky lg:top-24 h-fit">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -279,7 +278,7 @@ export default function ShoppingCartPage() {
           )}
         </AnimatePresence>
 
-        {/* Recently Viewed Suggestions (when cart has items) */}
+        {/* Recently Viewed Suggestions */}
         {items.length > 0 && (
           <motion.section
             initial={{ opacity: 0, y: 40 }}

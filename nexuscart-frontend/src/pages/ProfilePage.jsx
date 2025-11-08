@@ -60,7 +60,7 @@ export default function ProfilePage() {
         setUser(userData);
         setAvatarPreview(userData?.avatar || null);
         
-        // Fix orders data structure
+        // Orders data structure
         let ordersData = [];
         if (Array.isArray(ordersResponse)) {
           ordersData = ordersResponse;
@@ -262,7 +262,7 @@ export default function ProfilePage() {
     }));
   };
 
-  // Fix image URLs
+  // Image URLs
   const getImageUrl = (image) => {
     if (!image) return '/images/placeholder-product.jpg';
     if (image.startsWith('http')) return image;
@@ -270,7 +270,7 @@ export default function ProfilePage() {
     return `/${image}`;
   };
 
-  // Fix date display
+  // Date display
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
@@ -304,10 +304,10 @@ export default function ProfilePage() {
   const getEstimatedDates = (orderDate) => {
     const order = new Date(orderDate);
     const shipDate = new Date(order);
-    shipDate.setDate(shipDate.getDate() + 1); // Ships next day
+    shipDate.setDate(shipDate.getDate() + 1); 
     
     const deliveryDate = new Date(order);
-    deliveryDate.setDate(deliveryDate.getDate() + 5); // Delivers in 5 days
+    deliveryDate.setDate(deliveryDate.getDate() + 5); 
     
     return {
       ship: formatDate(shipDate),

@@ -39,7 +39,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/orders - Create order (for direct order creation if needed)
+// POST /api/orders - Create order 
 router.post('/', async (req, res) => {
   try {
     const { items, total, shippingAddress, paymentMethod } = req.body;

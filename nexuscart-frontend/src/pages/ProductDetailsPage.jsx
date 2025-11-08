@@ -37,7 +37,6 @@ export default function ProductDetailsPage() {
       return imagePath;
     }
     
-    // Use actual images from public folder
     if (imagePath.startsWith('/images/')) {
       return imagePath;
     }
@@ -54,7 +53,7 @@ export default function ProductDetailsPage() {
           api.getProducts({ limit: 8 })
         ]);
         
-        // FIX: Handle different response structures
+        // Handle different response structures
         let productData = productResponse;
         console.log('Product response:', productResponse);
         
@@ -152,7 +151,7 @@ export default function ProductDetailsPage() {
 
     const finalSize = selectedSize || sizes[0];
 
-    // Enhanced flying animation
+    // Flying animation
     if (productImgRef.current) {
       const imgClone = productImgRef.current.cloneNode(true);
       const rect = productImgRef.current.getBoundingClientRect();

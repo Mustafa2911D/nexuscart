@@ -9,11 +9,11 @@ connectDB();
 
 const app = express();
 
-// Enhanced CORS configuration - FIXED
+// Enhanced CORS configuration 
 app.use(cors({
   origin: [
-    'https://nexuscart-peach.vercel.app',  // Your actual Vercel URL
-    'https://nexuscart.vercel.app',        // Your main domain
+    'https://nexuscart-peach.vercel.app',  
+    'https://nexuscart.vercel.app',        
     'http://localhost:5173',
     'http://localhost:3000'
   ],
@@ -33,9 +33,6 @@ app.use(cors({
     'Access-Control-Allow-Credentials'
   ]
 }));
-
-// Or use this SIMPLE CORS configuration that allows all origins (for development):
-// app.use(cors());
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

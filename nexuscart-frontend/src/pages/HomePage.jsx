@@ -97,7 +97,7 @@ export default function HomePage() {
       return
     }
 
-    // Enhanced flying animation
+    // Flying animation
     const rect = imgEl.getBoundingClientRect()
     const clone = imgEl.cloneNode(true)
     clone.style.position = 'fixed'
@@ -139,7 +139,7 @@ export default function HomePage() {
 
   return (
     <div className="pb-16">
-      {/* Enhanced Hero Section */}
+      {/* Hero Section */}
       <section className="relative my-8 overflow-hidden rounded-2xl bg-dark text-white group">
         <div className="absolute inset-0 overflow-hidden">
           <img
@@ -179,7 +179,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Enhanced Features Section */}
+      {/* Features Section */}
       <section className="my-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
@@ -202,7 +202,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Enhanced Featured Products */}
+      {/* Featured Products */}
       <section id="featured" className="my-20">
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -268,7 +268,7 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* Enhanced Newsletter Section */}
+      {/* Newsletter Section */}
       <section className="my-20 bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-8 sm:p-12 text-center border border-primary/10">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold mb-4 text-gray-900">Stay Updated</h2>

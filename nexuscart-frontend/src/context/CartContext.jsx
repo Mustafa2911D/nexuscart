@@ -113,7 +113,7 @@ export function CartProvider({ children }) {
       if (!token) return;
       
       const cartData = await api.getCart();
-      console.log('Cart sync response:', cartData); // Debug log
+      console.log('Cart sync response:', cartData); 
       
       if (cartData && cartData.data) {
         dispatch({ type: 'HYDRATE', payload: { items: cartData.data.items } });
@@ -142,19 +142,18 @@ export function CartProvider({ children }) {
         size: size || ''
       };
       
-      console.log('Adding to cart:', { product, size, quantity, token: !!token }); // Debug log
+      console.log('Adding to cart:', { product, size, quantity, token: !!token }); 
       
       if (token) {
         // User is logged in - sync with backend
         const result = await api.addToCart(itemData);
-        console.log('Backend cart response:', result); // Debug log
+        console.log('Backend cart response:', result); 
         
         if (result && result.data) {
           dispatch({ type: 'HYDRATE', payload: { items: result.data.items } });
         } else if (result && result.items) {
           dispatch({ type: 'HYDRATE', payload: { items: result.items } });
         } else {
-          // If backend response doesn't have expected structure, fallback to local
           dispatch({ 
             type: 'ADD_TO_CART', 
             payload: {
@@ -165,7 +164,6 @@ export function CartProvider({ children }) {
           });
         }
       } else {
-        // Guest user - add to local state only
         dispatch({ 
           type: 'ADD_TO_CART', 
             payload: {
@@ -249,18 +247,17 @@ export function CartProvider({ children }) {
         paymentMethod: orderData.paymentMethod || 'Credit Card'
       });
       
-      console.log('Checkout response:', response); // Debug log
+      console.log('Checkout response:', response); 
       
       // Handle different response structures
       if (response && response.data) {
-        orderResult = response.data; // { data: order }
+        orderResult = response.data; 
       } else if (response && response._id) {
-        orderResult = response; // direct order object
+        orderResult = response; 
       } else {
         throw new Error('Invalid checkout response');
       }
     } else {
-      // Guest user - create order locally
       const total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       
       orderResult = {
@@ -289,7 +286,6 @@ export function CartProvider({ children }) {
   }
 };
 
-    // Function to manually sync cart (useful after login)
     const manualSyncCart = async () => {
       await syncCartWithBackend();
     };

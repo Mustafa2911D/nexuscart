@@ -48,7 +48,7 @@ export default function SuccessPage() {
     visible: { opacity: 1, y: 0 }
   }
 
-  // Fix image URLs - ensure they're properly formatted
+  // Image URLs 
   const getImageUrl = (image) => {
     if (!image) return '/images/placeholder-product.jpg';
     if (image.startsWith('http')) return image;
@@ -336,7 +336,7 @@ export default function SuccessPage() {
               </div>
             </div>
 
-            {/* Order Timeline - Fixed sticky positioning */}
+            {/* Order Timeline */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-[400px]">
               <h3 className="font-semibold text-gray-900 mb-4">Order Status</h3>
               <div className="space-y-4">

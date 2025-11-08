@@ -13,7 +13,7 @@ const generateToken = (id) => {
   });
 };
 
-// POST /api/auth/register - FIXED
+// POST /api/auth/register 
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -77,7 +77,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /api/auth/login - FIXED
+// POST /api/auth/login 
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -121,7 +121,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /api/auth/profile - FIXED
+// GET /api/auth/profile 
 router.get('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -153,7 +153,7 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
-// PUT /api/auth/profile - FIXED
+// PUT /api/auth/profile 
 router.put('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);

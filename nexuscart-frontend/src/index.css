@@ -7,7 +7,7 @@ html, body {
   scroll-behavior: smooth;
 }
 
-/* Fancy focus ring */
+/* Focus ring */
 :focus-visible {
   outline: 2px solid theme('colors.primary');
   outline-offset: 2px;

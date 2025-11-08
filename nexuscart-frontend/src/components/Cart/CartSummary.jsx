@@ -16,7 +16,7 @@ export default function CartSummary() {
     
     try {
       const order = await checkout({
-        shippingAddress: "User's address", // You can get this from user profile
+        shippingAddress: "User's address", 
         paymentMethod: "Credit Card"
       });
       
@@ -30,8 +30,8 @@ export default function CartSummary() {
     }
   }
 
-  const tax = totalPrice * 0.15; // 15% tax
-  const shipping = totalPrice > 500 ? 0 : 99; // Free shipping over R500
+  const tax = totalPrice * 0.15; 
+  const shipping = totalPrice > 500 ? 0 : 99; 
   const finalTotal = totalPrice + tax + shipping;
 
   return (

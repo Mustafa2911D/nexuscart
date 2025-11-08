@@ -10,7 +10,6 @@ const connectDB = async () => {
     
     console.log('Connection string:', process.env.MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'));
     
-    // Remove deprecated options for newer MongoDB driver
     const conn = await mongoose.connect(process.env.MONGODB_URI);
     
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
@@ -18,7 +17,6 @@ const connectDB = async () => {
   } catch (error) {
     console.error('❌ MongoDB Connection Failed:', error.message);
     
-    // More detailed error information
     if (error.message.includes('bad auth') || error.message.includes('Authentication failed')) {
       console.error('🔐 Authentication failed - check username and password in MONGODB_URI');
     } else if (error.message.includes('getaddrinfo')) {

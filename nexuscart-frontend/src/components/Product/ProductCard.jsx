@@ -20,18 +20,15 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
       return 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop';
     }
     
-    // If it's already a full URL, return as is
     if (imagePath.startsWith('http')) {
       return imagePath;
     }
     
-    // If it's a relative path starting with /images/, serve from public folder
-    // Vercel will automatically serve these from the public/images folder
     if (imagePath.startsWith('/images/')) {
       return imagePath;
     }
     
-    // Map backend image paths to your actual images
+    // Map backend image paths 
     const imageMap = {
       '/images/shirt.jpeg': '/images/shirt.jpeg',
       '/images/whitetee.jpeg': '/images/whitetee.jpeg',
@@ -186,7 +183,7 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
     )
   }
 
-  // Grid View - Fixed version
+  // Grid View 
   return (
     <div className="group rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 relative flex flex-col h-full">
       {/* Product Image */}
@@ -222,9 +219,9 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
         </button>
       </div>
 
-      {/* Product Info - Flex column to push button to bottom */}
+      {/* Product Info */}
       <div className="flex flex-col flex-1 space-y-3">
-        {/* Name and Price - Fixed overlapping with proper spacing */}
+        {/* Name and Price */}
         <div className="flex flex-col gap-1 min-h-[3rem]">
           <Link to={`/products/${product._id || product.id}`} className="min-w-0 flex-1">
             <h3 className="font-semibold text-gray-900 hover:text-primary line-clamp-2 text-sm sm:text-base leading-tight mb-1">
@@ -246,7 +243,7 @@ const ProductCard = forwardRef(({ product, onAddToCart, viewMode = 'grid' }, ref
           {product.description}
         </p>
 
-        {/* Add to Cart Button - Always at bottom */}
+        {/* Add to Cart Button */}
         <div className="pt-2 mt-auto">
           <motion.button
             whileTap={{ scale: 0.95 }}
