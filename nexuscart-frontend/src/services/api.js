@@ -167,14 +167,20 @@ getOrders: async () => {
   try {
     const response = await apiClient.get('/orders');
     
-    if (response.success && response.data) {
-      return response.data;
-    } else if (Array.isArray(response)) {
-      return response;
-    } else if (response.orders) {
-      return response.orders;
+    console.log('Orders API response:', response); // Debug log
+    
+    // Handle different response structures
+    if (Array.isArray(response)) {
+      return response; // Direct array from MongoDB
+    } else if (response && Array.isArray(response.data)) {
+      return response.data; // { data: [] } format
+    } else if (response && response.orders) {
+      return response.orders; // { orders: [] } format
+    } else if (response && response.success && Array.isArray(response.data)) {
+      return response.data; // { success: true, data: [] } format
     }
     
+    console.warn('Unexpected orders response format:', response);
     return [];
   } catch (error) {
     console.error('Failed to fetch orders:', error);

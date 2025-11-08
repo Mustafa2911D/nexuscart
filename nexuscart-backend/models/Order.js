@@ -22,6 +22,10 @@ const orderItemSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true
+  },
+  image: {
+    type: String,
+    default: ''
   }
 });
 
@@ -38,12 +42,16 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'completed'],
     default: 'pending'
   },
   shippingAddress: {
     type: String,
     required: true
+  },
+  paymentMethod: {
+    type: String,
+    default: 'Credit Card'
   }
 }, {
   timestamps: true

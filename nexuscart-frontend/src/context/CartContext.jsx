@@ -236,47 +236,58 @@ export function CartProvider({ children }) {
     }
 
     const checkout = async (orderData) => {
-      try {
-        dispatch({ type: 'SET_LOADING', payload: true });
-        
-        const token = localStorage.getItem('token');
-        let orderResult;
+  try {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    
+    const token = localStorage.getItem('token');
+    let orderResult;
 
-        if (token) {
-          // Authenticated user - create order via backend
-          orderResult = await api.checkout({
-            shippingAddress: orderData.shippingAddress,
-            paymentMethod: orderData.paymentMethod || 'Credit Card'
-          });
-        } else {
-          // Guest user - create order locally
-          const total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          
-          orderResult = {
-            _id: `order_${Date.now()}`,
-            items: state.items,
-            total: total,
-            shippingAddress: orderData.shippingAddress || 'Not provided',
-            paymentMethod: orderData.paymentMethod || 'Credit Card',
-            status: 'completed',
-            createdAt: new Date().toISOString()
-          };
-        }
-
-        // Clear cart after successful checkout
-        dispatch({ type: 'CLEAR_CART' });
-        localStorage.removeItem('nexuscart-cart');
-
-        return orderResult;
-        
-      } catch (error) {
-        console.error('Checkout error:', error);
-        dispatch({ type: 'SET_ERROR', payload: error.message });
-        throw error;
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+    if (token) {
+      // Authenticated user - create order via backend
+      const response = await api.checkout({
+        shippingAddress: orderData.shippingAddress,
+        paymentMethod: orderData.paymentMethod || 'Credit Card'
+      });
+      
+      console.log('Checkout response:', response); // Debug log
+      
+      // Handle different response structures
+      if (response && response.data) {
+        orderResult = response.data; // { data: order }
+      } else if (response && response._id) {
+        orderResult = response; // direct order object
+      } else {
+        throw new Error('Invalid checkout response');
       }
-    };
+    } else {
+      // Guest user - create order locally
+      const total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      orderResult = {
+        _id: `order_${Date.now()}`,
+        items: state.items,
+        total: total,
+        shippingAddress: orderData.shippingAddress || 'Not provided',
+        paymentMethod: orderData.paymentMethod || 'Credit Card',
+        status: 'completed',
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    // Clear cart after successful checkout
+    dispatch({ type: 'CLEAR_CART' });
+    localStorage.removeItem('nexuscart-cart');
+
+    return orderResult;
+    
+  } catch (error) {
+    console.error('Checkout error:', error);
+    dispatch({ type: 'SET_ERROR', payload: error.message });
+    throw error;
+  } finally {
+    dispatch({ type: 'SET_LOADING', payload: false });
+  }
+};
 
     // Function to manually sync cart (useful after login)
     const manualSyncCart = async () => {
