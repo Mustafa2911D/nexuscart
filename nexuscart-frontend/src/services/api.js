@@ -163,15 +163,29 @@ export const api = {
   },
 
   // Order methods
-  getOrders: async () => {
+getOrders: async () => {
+  try {
     const response = await apiClient.get('/orders');
-    return Array.isArray(response) ? response : (response.orders || response);
-  },
+    
+    if (response.success && response.data) {
+      return response.data;
+    } else if (Array.isArray(response)) {
+      return response;
+    } else if (response.orders) {
+      return response.orders;
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Failed to fetch orders:', error);
+    return [];
+  }
+},
 
-  getOrder: async (id) => {
-    const response = await apiClient.get(`/orders/${id}`);
-    return response;
-  },
+getOrder: async (id) => {
+  const response = await apiClient.get(`/orders/${id}`);
+  return response;
+},
 
   // Newsletter methods
   subscribeToNewsletter: async (email) => {

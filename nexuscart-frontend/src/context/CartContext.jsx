@@ -1,4 +1,3 @@
-// src/context/CartContext.jsx
 import { createContext, useContext, useEffect, useMemo, useReducer } from 'react'
 import useLocalStorage from '../hooks/useLocalStorage'
 import { api } from '../services/api'
@@ -266,3 +265,45 @@ export const useCart = () => {
   }
   return context;
 }
+const checkout = async (orderData) => {
+  try {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    
+    const token = localStorage.getItem('token');
+    let orderResult;
+
+    if (token) {
+      // Authenticated user - create order via backend
+      orderResult = await api.checkout({
+        shippingAddress: orderData.shippingAddress,
+        paymentMethod: orderData.paymentMethod || 'Credit Card'
+      });
+    } else {
+      // Guest user - create order locally
+      const total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      orderResult = {
+        _id: `order_${Date.now()}`,
+        items: state.items,
+        total: total,
+        shippingAddress: orderData.shippingAddress || 'Not provided',
+        paymentMethod: orderData.paymentMethod || 'Credit Card',
+        status: 'completed',
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    // Clear cart after successful checkout
+    dispatch({ type: 'CLEAR_CART' });
+    localStorage.removeItem('nexuscart-cart');
+
+    return orderResult;
+    
+  } catch (error) {
+    console.error('Checkout error:', error);
+    dispatch({ type: 'SET_ERROR', payload: error.message });
+    throw error;
+  } finally {
+    dispatch({ type: 'SET_LOADING', payload: false });
+  }
+};

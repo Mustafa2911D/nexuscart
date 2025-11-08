@@ -69,6 +69,23 @@ export default function ProfilePage() {
     fetchData();
   }, [token, navigate, setUser])
 
+  // Fetch orders when orders tab is active
+  const fetchOrders = async () => {
+    try {
+      const ordersData = await api.getOrders();
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+      setOrders([]);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'orders') {
+      fetchOrders();
+    }
+  }, [activeTab]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userData');

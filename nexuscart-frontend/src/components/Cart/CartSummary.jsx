@@ -1,10 +1,9 @@
 import { useCart } from '../../context/CartContext'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { api } from '../../services/api'  
 
 export default function CartSummary() {
-  const { totalItems, totalPrice, items, clearCart } = useCart()
+  const { totalItems, totalPrice, items, clearCart, checkout } = useCart()
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -13,8 +12,8 @@ export default function CartSummary() {
     
     setCheckoutLoading(true);
     try {
-      const { data: order } = await api.checkout({
-        shippingAddress: "User's address", 
+      const order = await checkout({
+        shippingAddress: "User's address", // You can get this from user profile
         paymentMethod: "Credit Card"
       });
       
@@ -28,32 +27,53 @@ export default function CartSummary() {
     }
   }
 
+  const tax = totalPrice * 0.15; // 15% tax
+  const shipping = totalPrice > 500 ? 0 : 99; // Free shipping over R500
+  const finalTotal = totalPrice + tax + shipping;
+
   return (
-    <div className="rounded-2xl bg-gray-50 p-4">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">Items</span>
-        <span className="font-semibold">{totalItems}</span>
-      </div>
-      <div className="mt-2 flex items-center justify-between">
-        <span className="text-sm text-gray-600">Total</span>
-        <span className="text-lg font-bold">R {totalPrice.toFixed(2)}</span>
-      </div>
+    <div className="rounded-2xl bg-gray-50 p-6">
+      <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
       
+      <div className="space-y-3 mb-4">
+        <div className="flex justify-between text-sm">
+          <span>Items ({totalItems})</span>
+          <span>R {totalPrice.toFixed(2)}</span>
+        </div>
+        
+        <div className="flex justify-between text-sm">
+          <span>Shipping</span>
+          <span>{shipping === 0 ? 'Free' : `R ${shipping.toFixed(2)}`}</span>
+        </div>
+        
+        <div className="flex justify-between text-sm">
+          <span>Tax (15%)</span>
+          <span>R {tax.toFixed(2)}</span>
+        </div>
+        
+        <div className="border-t pt-3">
+          <div className="flex justify-between font-semibold">
+            <span>Total</span>
+            <span>R {finalTotal.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+
       {items.length > 0 ? (
         <button
           onClick={handleCheckout}
           disabled={checkoutLoading}
-          className="mt-3 w-full rounded-xl bg-secondary px-4 py-2 text-center font-medium text-white hover:opacity-95 disabled:opacity-50"
+          className="w-full bg-primary text-white py-3 px-4 rounded-xl font-semibold hover:bg-indigo-600 disabled:opacity-50 transition-colors"
         >
-          {checkoutLoading ? 'Processing...' : 'Checkout'}
+          {checkoutLoading ? 'Processing...' : 'Proceed to Checkout'}
         </button>
       ) : (
-        <Link
-          to="/products"
-          className="mt-3 block rounded-xl bg-primary px-4 py-2 text-center font-medium text-white hover:opacity-95"
+        <button
+          onClick={() => navigate('/products')}
+          className="w-full bg-primary text-white py-3 px-4 rounded-xl font-semibold hover:bg-indigo-600 transition-colors"
         >
           Continue Shopping
-        </Link>
+        </button>
       )}
     </div>
   )
